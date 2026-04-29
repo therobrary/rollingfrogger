@@ -10,6 +10,7 @@ const PickupManager = {
     scene.currency = scene.currency || 0;
     scene.shieldActive = scene.shieldActive || false;
     scene.magnetActive = scene.magnetActive || false;
+    this._persistCurrency(scene);
     return scene.pickups;
   },
 
@@ -269,6 +270,7 @@ const PickupManager = {
 
   addCurrency(scene, amount) {
     scene.currency = (scene.currency || 0) + amount;
+    this._persistCurrency(scene);
     ScoreManager.updateHUD(scene);
     return scene.currency;
   },
@@ -276,8 +278,18 @@ const PickupManager = {
   spendCurrency(scene, amount) {
     if ((scene.currency || 0) < amount) return false;
     scene.currency -= amount;
+    this._persistCurrency(scene);
     ScoreManager.updateHUD(scene);
     return true;
+  },
+
+  _persistCurrency(scene) {
+    if (!scene) return;
+    try {
+      const progress = SaveSystem.load('progress') || { currency: 0 };
+      progress.currency = scene.currency;
+      SaveSystem.save('progress', progress);
+    } catch (e) {}
   },
 
   updateIndicators(scene) {

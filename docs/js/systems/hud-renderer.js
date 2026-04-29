@@ -87,7 +87,7 @@ class HUDRenderer {
     }).setOrigin(0.5).setDepth(100);
   }
 
-  update(score, lives, level, hopsCompleted, highScore, currency, shieldActive, magnetActive) {
+  update(score, lives, level, hopsCompleted, highScore, currency, shieldActive, magnetActive, equippedCharName) {
     this.scoreText.setText(`Score: ${score}`);
     this.livesText.setText('Lives: ' + '\u2665'.repeat(Math.max(0, lives)));
     this.levelText.setText(`Level: ${level}  Progress: ${hopsCompleted}`);
@@ -97,6 +97,7 @@ class HUDRenderer {
     const statusParts = [];
     if (shieldActive) statusParts.push('\u25CF Shield');
     if (magnetActive) statusParts.push('\u25CF Magnet');
+    if (equippedCharName) statusParts.push(`[${equippedCharName}]`);
     this.statusText.setText(statusParts.join('  '));
 
     // Hide endless mode elements

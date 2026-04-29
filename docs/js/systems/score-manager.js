@@ -3,10 +3,12 @@
 const ScoreManager = {
 
   updateHUD(scene) {
+    const equippedChar = CharacterRoster ? CharacterRoster.getEquippedCharacter() : null;
+    const charName = equippedChar ? equippedChar.name : null;
     if (scene.isEndless && scene.isEndless()) {
       scene.hudRenderer.updateEndless(scene.score, scene.lives, scene.distance, scene.combo, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive);
     } else {
-      scene.hudRenderer.update(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive);
+      scene.hudRenderer.update(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive, charName);
     }
   },
 

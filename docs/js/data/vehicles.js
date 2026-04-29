@@ -76,3 +76,5 @@ const PICKUP_DATA = {
   // Max pickups on screen at once
   maxPickupsOnScreen: 20,
 };
+
+

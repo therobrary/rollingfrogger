@@ -64,6 +64,7 @@ class GameScene extends Phaser.Scene {
     this._lastPlayerX = 0;
     this._lastPlayerY = 0;
     this._nearMissEntities = [];
+    this._equippedCharId = null;
     ScoreManager.initHighScore(this);
   }
 
@@ -80,6 +81,14 @@ class GameScene extends Phaser.Scene {
     this.gameHeight = height;
     this.tileSize = LANE_DATA.TILE_SIZE;
     this.startRowY = this.gameHeight - this.tileSize / 2;
+
+    // Load currency from save
+    const progress = SaveSystem.load('progress');
+    this.currency = progress ? (progress.currency || 0) : 0;
+
+    // Load equipped character
+    CharacterRoster.init();
+    this._equippedCharId = CharacterRoster.getEquippedId();
 
     this.cameras.main.setBackgroundColor('#1a1a2e');
 
@@ -147,10 +156,11 @@ class GameScene extends Phaser.Scene {
   }
 
   createPlayer() {
+    const spriteKey = CharacterRoster.getEquippedSpriteKey();
     this.player = this.physics.add.image(
       this.gameWidth / 2,
       this.startRowY,
-      'player'
+      spriteKey
     );
     this.player.setCollideWorldBounds(false);
     this.player.setDepth(10);

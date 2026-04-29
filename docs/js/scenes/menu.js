@@ -82,6 +82,9 @@ class MenuScene extends Phaser.Scene {
     ModeManager.init();
     this._selectedMode = ModeManager.getMode();
 
+    // Initialize character roster
+    CharacterRoster.init();
+
     // Classic mode button
     this._classicBtn = this.add.rectangle(classicBtnX + modeBtnWidth / 2, modeBtnY, modeBtnWidth, modeBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
@@ -142,7 +145,7 @@ class MenuScene extends Phaser.Scene {
     });
 
     // Instructions panel
-    const instrY = height * 0.78;
+    const instrY = height * 0.72;
 
     this.add.text(width / 2, instrY, 'How to Play', {
       fontSize: '16px',
@@ -163,11 +166,51 @@ class MenuScene extends Phaser.Scene {
       color: '#555566'
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, instrY + 72, 'Use safe zones (median, grass, sidewalk) to plan your route', {
+    // Equipped character display
+    const equippedChar = CharacterRoster.getEquippedCharacter();
+    this.add.text(width / 2, instrY + 72, `Playing as: ${equippedChar.name}`, {
       fontSize: '12px',
       fontFamily: 'Arial, sans-serif',
-      color: '#444455'
+      color: CHARACTER_DATA.rarityColors[equippedChar.rarity] || '#aaaaaa',
+      stroke: '#000000',
+      strokeThickness: 2
     }).setOrigin(0.5);
+
+    // Character select button
+    const charBtnX = width / 2 - 70;
+    const charBtnY = height * 0.86;
+    const charBtn = this.add.rectangle(charBtnX + 35, charBtnY, 70, 30, 0x224466)
+      .setInteractive({ useHandCursor: true });
+    const charBtnText = this.add.text(charBtnX + 35, charBtnY, 'CHARS', {
+      fontSize: '12px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#4488ff',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5);
+    charBtn.on('pointerover', () => charBtn.setFillStyle(0x336688));
+    charBtn.on('pointerout', () => charBtn.setFillStyle(0x224466));
+    charBtn.on('pointerdown', () => {
+      this.scene.start('CharacterSelectScene');
+    });
+
+    // Settings button
+    const settingsBtnX = width / 2 + 10;
+    const settingsBtnY = height * 0.86;
+    const settingsBtn = this.add.rectangle(settingsBtnX + 35, settingsBtnY, 70, 30, 0x224466)
+      .setInteractive({ useHandCursor: true });
+    const settingsBtnText = this.add.text(settingsBtnX + 35, settingsBtnY, 'SETTINGS', {
+      fontSize: '12px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#ffaa00',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5);
+    settingsBtn.on('pointerover', () => settingsBtn.setFillStyle(0x336688));
+    settingsBtn.on('pointerout', () => settingsBtn.setFillStyle(0x224466));
+    settingsBtn.on('pointerdown', () => {
+      this._openSettings();
+    });
 
     // Footer
     this.add.text(width / 2, height - 20, 'A game about crossing Rolling Rd safely', {
@@ -191,5 +234,12 @@ class MenuScene extends Phaser.Scene {
 
     // Update description
     this._modeDescription.setText(ModeManager.getModeDescription(mode));
+  }
+
+  _openSettings() {
+    if (!this._settingsPanel) {
+      this._settingsPanel = new SettingsPanel(this);
+    }
+    this._settingsPanel.open();
   }
 }
