@@ -203,7 +203,7 @@ class CharacterSelectScene extends Phaser.Scene {
   getCurrency() {
     const progress = SaveSystem.load('progress');
     return progress ? (progress.currency || 0) : 0;
-  },
+  }
 
   spendCurrency(amount) {
     const progress = SaveSystem.load('progress') || { currency: 0 };
@@ -211,5 +211,5 @@ class CharacterSelectScene extends Phaser.Scene {
     progress.currency -= amount;
     SaveSystem.save('progress', progress);
     return true;
-  },
+  }
 }
