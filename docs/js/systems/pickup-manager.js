@@ -10,6 +10,8 @@ const PickupManager = {
     scene.currency = scene.currency || 0;
     scene.shieldActive = scene.shieldActive || false;
     scene.magnetActive = scene.magnetActive || false;
+    if (this._currencyFlushTimer) clearTimeout(this._currencyFlushTimer);
+    this._currencyFlushTimer = null;
     this._persistCurrency(scene);
     return scene.pickups;
   },
@@ -115,6 +117,12 @@ const PickupManager = {
     const data = pickup.collect(scene);
     if (!data) return;
 
+    // Track coins for achievements
+    if (data.type === 'coin') {
+      AchievementManager.trackCoin(true);
+      ChallengeManager.checkChallengeProgress('coinsCollected', 1);
+    }
+
     // Apply points
     if (data.points > 0) {
       scene.score += data.points;
@@ -125,6 +133,9 @@ const PickupManager = {
     if (data.currencyValue > 0) {
       this.addCurrency(scene, data.currencyValue);
     }
+
+    // Track total currency for achievements
+    AchievementManager.trackCurrency(scene.currency);
 
     // Apply type-specific effects
     this.applyPickupEffect(scene, data.type);
@@ -240,6 +251,8 @@ const PickupManager = {
       onComplete: () => shieldBreak.destroy()
     });
 
+    ChallengeManager.checkChallengeProgress('shieldBlocks', 1);
+
     ScoreManager.updateHUD(scene);
     return true;
   },
@@ -285,11 +298,14 @@ const PickupManager = {
 
   _persistCurrency(scene) {
     if (!scene) return;
-    try {
-      const progress = SaveSystem.load('progress') || { currency: 0 };
-      progress.currency = scene.currency;
-      SaveSystem.save('progress', progress);
-    } catch (e) {}
+    if (this._currencyFlushTimer) clearTimeout(this._currencyFlushTimer);
+    this._currencyFlushTimer = setTimeout(() => {
+      try {
+        const progress = SaveSystem.load('progress') || { currency: 0 };
+        progress.currency = Math.max(progress.currency || 0, scene.currency);
+        SaveSystem.save('progress', progress);
+      } catch (e) {}
+    }, 2000);
   },
 
   updateIndicators(scene) {

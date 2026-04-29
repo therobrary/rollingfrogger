@@ -85,6 +85,9 @@ class MenuScene extends Phaser.Scene {
     // Initialize character roster
     CharacterRoster.init();
 
+    // Initialize achievement panel
+    AchievementPanel.init();
+
     // Classic mode button
     this._classicBtn = this.add.rectangle(classicBtnX + modeBtnWidth / 2, modeBtnY, modeBtnWidth, modeBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
@@ -192,6 +195,24 @@ class MenuScene extends Phaser.Scene {
     charBtn.on('pointerout', () => charBtn.setFillStyle(0x224466));
     charBtn.on('pointerdown', () => {
       this.scene.start('CharacterSelectScene');
+    });
+
+    // Achievements button
+    const achBtnX = width / 2 - 150;
+    const achBtnY = height * 0.86;
+    const achBtn = this.add.rectangle(achBtnX + 35, achBtnY, 70, 30, 0x224466)
+      .setInteractive({ useHandCursor: true });
+    const achBtnText = this.add.text(achBtnX + 35, achBtnY, 'ACHIEVE', {
+      fontSize: '10px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#ffaa00',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5);
+    achBtn.on('pointerover', () => achBtn.setFillStyle(0x336688));
+    achBtn.on('pointerout', () => achBtn.setFillStyle(0x224466));
+    achBtn.on('pointerdown', () => {
+      AchievementPanel.open();
     });
 
     // Settings button

@@ -15,6 +15,7 @@ const config = {
     BootScene,
     MenuScene,
     CharacterSelectScene,
+    AchievementListScene,
     GameScene,
     GameOverScene
   ],

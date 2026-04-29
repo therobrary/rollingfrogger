@@ -65,7 +65,12 @@ class GameScene extends Phaser.Scene {
     this._lastPlayerY = 0;
     this._nearMissEntities = [];
     this._equippedCharId = null;
+    this._livesAtStart = GameConfig.initialLives;
+    this._currencyAtStart = 0;
+    this._perfectMode = true;
     ScoreManager.initHighScore(this);
+    AchievementManager.init();
+    ChallengeManager.init();
   }
 
   isEndless() {
@@ -89,6 +94,7 @@ class GameScene extends Phaser.Scene {
     // Load equipped character
     CharacterRoster.init();
     this._equippedCharId = CharacterRoster.getEquippedId();
+    AchievementManager.trackCharacterPlayed(this._equippedCharId);
 
     this.cameras.main.setBackgroundColor('#1a1a2e');
 
@@ -115,6 +121,7 @@ class GameScene extends Phaser.Scene {
       this.gameActive = true;
       this.physics.resume();
     });
+    this._lastEndlessTimeCheck = this.time.now;
   }
 
   _setupClassicMode() {
@@ -182,6 +189,7 @@ class GameScene extends Phaser.Scene {
       ScrollManager.updateScroll(this, delta);
       this._updateNearMissDetection(time);
       this._updateComboTimer(time, delta);
+      this._trackEndlessTime(time, delta);
     }
   }
 
@@ -193,6 +201,11 @@ class GameScene extends Phaser.Scene {
     this._lastPlayerX = this.player.x;
     this._lastPlayerY = this.player.y;
 
+    if (dy === -1) {
+      AchievementManager.trackHop();
+      ChallengeManager.checkChallengeProgress('hops', 1);
+    }
+
     if (this.isEndless()) {
       this._onEndlessMove(dx, dy);
     } else {
@@ -203,8 +216,11 @@ class GameScene extends Phaser.Scene {
   _onEndlessMove(dx, dy) {
     // Track distance for endless mode
     if (dy === -1) {
-      this.distance += GameConfig.endlessDistancePerLane;
+      const deltaDistance = GameConfig.endlessDistancePerLane;
+      this.distance += deltaDistance;
       this.score += GameConfig.endlessDistanceScorePerLane;
+
+      ChallengeManager.checkChallengeProgress('distance', deltaDistance);
 
       // Check for checkpoint (every section crossed)
       const playerLane = this.getPlayerLane();
@@ -224,6 +240,9 @@ class GameScene extends Phaser.Scene {
 
   levelComplete() {
     ScoreManager.onLevelComplete(this);
+    if (this._perfectMode && this.lives === this._livesAtStart) {
+      AchievementManager.trackPerfectLevel();
+    }
   }
 
   showCountdown(text, callback) {
@@ -303,12 +322,33 @@ class GameScene extends Phaser.Scene {
     this._nearMissEntities = this._nearMissEntities.filter(e => (time - e.time) < GameConfig.endlessNearMissComboTimeout);
   }
 
+  _updateComboTimer(time, delta) {
+    if (this.combo > 0 && time > this.comboTimer) {
+      // Combo expired
+      this.combo = 0;
+      ScoreManager.updateHUD(this);
+    }
+  }
+
+  _trackEndlessTime(time, delta) {
+    if (!this.gameActive) return;
+    const elapsed = (time - this._lastEndlessTimeCheck) / 1000;
+    if (elapsed >= 1) {
+      AchievementManager.trackEndlessTime(Math.floor(elapsed));
+      ChallengeManager.checkChallengeProgress('endlessTime', Math.floor(elapsed));
+      this._lastEndlessTimeCheck = time;
+    }
+  }
+
   _registerNearMiss(time) {
     this.combo++;
     if (this.combo > GameConfig.endlessMaxCombo) {
       this.combo = GameConfig.endlessMaxCombo;
     }
     this.comboTimer = time + GameConfig.endlessNearMissComboTimeout;
+
+    AchievementManager.trackNearMissCombo(this.combo);
+    ChallengeManager.checkChallengeProgress('nearMisses', 1);
 
     const multiplier = 1 + (this.combo - 1) * GameConfig.endlessNearMissComboMultiplier;
     const points = Math.floor(GameConfig.endlessNearMissBasePoints * multiplier);
@@ -337,14 +377,6 @@ class GameScene extends Phaser.Scene {
     });
 
     ScoreManager.updateHUD(this);
-  }
-
-  _updateComboTimer(time, delta) {
-    if (this.combo > 0 && time > this.comboTimer) {
-      // Combo expired
-      this.combo = 0;
-      ScoreManager.updateHUD(this);
-    }
   }
 
   // Override rebuildLevel for endless mode

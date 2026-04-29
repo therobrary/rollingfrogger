@@ -7,6 +7,7 @@ class GameOverScene extends Phaser.Scene {
     this.won = data.won || false;
     this.score = data.score || 0;
     this.level = data.level || 1;
+    AchievementManager.saveAchievements();
     try {
       this.highScore = parseInt(localStorage.getItem('rollingfrogger_highscore'), 10) || 0;
     } catch(e) {
@@ -86,7 +87,7 @@ class GameOverScene extends Phaser.Scene {
         strokeThickness: 3
       }).setOrigin(0.5);
     } else {
-      const subtitleY = isNewHigh ? 115 : 85;
+      const subtitleY = centerY + (isNewHigh ? 115 : 85);
       this.add.text(centerX, subtitleY, 'Traffic on Rolling Rd is no joke!', {
         fontSize: '16px',
         fontFamily: 'Arial, sans-serif',

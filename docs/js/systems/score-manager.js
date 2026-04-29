@@ -59,6 +59,8 @@ const ScoreManager = {
       scene.score += GameConfig.scoreLevelComplete;
       scene.hopsCompleted = 0;
       scene.level++;
+      AchievementManager.trackCurrency(scene.currency);
+      ChallengeManager.checkChallengeProgress('score', scene.score);
 
       const flash = scene.add.rectangle(
         scene.gameWidth / 2,
@@ -94,6 +96,9 @@ const ScoreManager = {
     scene.physics.pause();
     scene.score += GameConfig.scoreLevelComplete;
 
+    AchievementManager.trackCurrency(scene.currency);
+    AchievementManager.trackLevelComplete();
+
     const flash = scene.add.rectangle(
       scene.gameWidth / 2,
       scene.gameHeight / 2,
@@ -111,6 +116,7 @@ const ScoreManager = {
         flash.destroy();
         scene.hopsCompleted = 0;
         scene.level++;
+        ChallengeManager.checkChallengeProgress('levels', 1);
         scene.rebuildLevel();
         scene.showCountdown(`LEVEL ${scene.level}`, () => {
           scene.gameActive = true;
@@ -122,6 +128,7 @@ const ScoreManager = {
   },
 
   onDrown(scene) {
+    if (scene._perfectMode) scene._perfectMode = false;
     scene.lives--;
     scene.score = Math.max(0, scene.score - GameConfig.scorePenalty);
     scene.shieldActive = false;
@@ -129,6 +136,7 @@ const ScoreManager = {
     scene.player.clearTint();
     if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
     if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
+    AchievementManager.trackDeath();
 
     scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
     const flash = scene.add.rectangle(
@@ -167,6 +175,7 @@ const ScoreManager = {
     if (scene.gameActive === false) return;
     scene.gameActive = false;
 
+    if (scene._perfectMode) scene._perfectMode = false;
     scene.lives--;
     scene.score = Math.max(0, scene.score - GameConfig.scorePenalty);
     scene.shieldActive = false;
@@ -174,6 +183,7 @@ const ScoreManager = {
     scene.player.clearTint();
     if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
     if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
+    AchievementManager.trackDeath();
 
     scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
     const flash = scene.add.rectangle(

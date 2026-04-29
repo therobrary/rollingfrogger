@@ -58,7 +58,7 @@ const SaveSystem = {
 
   exportSave() {
     const saveData = {};
-    const keys = ['progress', 'characters', 'settings'];
+    const keys = ['progress', 'characters', 'settings', 'achievements', 'challenges'];
     for (const key of keys) {
       const data = this.load(key);
       if (data) saveData[key] = data;
@@ -97,7 +97,7 @@ const SaveSystem = {
   },
 
   clearAll() {
-    const keys = ['progress', 'characters', 'settings'];
+    const keys = ['progress', 'characters', 'settings', 'achievements', 'challenges'];
     for (const key of keys) {
       this.delete(key);
     }
