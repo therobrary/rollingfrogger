@@ -178,6 +178,11 @@ class GameScene extends Phaser.Scene {
     PlayerController.setupInput(this);
     CollisionManager.setupCollisions(this);
 
+    // Bike collision (bike lane)
+    if (this.bikes) {
+      this.physics.add.overlap(this.player, this.bikes, () => CollisionManager.hitByVehicleHandler(this), null, this);
+    }
+
     if (!this.isEndless()) {
       GoalManager.createGoalBays(this);
       CollisionManager.setupGoalOverlap(this);
@@ -230,6 +235,11 @@ class GameScene extends Phaser.Scene {
     PickupManager.createPickupGroup(this);
     const pickupRate = this._difficultyDirector ? this._difficultyDirector.getPickupSpawnRate() : 1;
     PickupManager.spawnPickups(this, pickupRate);
+
+    // Bike lane setup (lane 8 - sidewalk/bike lane)
+    this.bikes = this.physics.add.group();
+    this._bikeSpawnTimer = 0;
+    this._bikeOnScreen = false;
   }
 
   _setupEndlessMode() {
@@ -303,6 +313,7 @@ class GameScene extends Phaser.Scene {
     }
 
     TrafficSpawner.updateTraffic(this, time);
+    this._updateBikes(time, delta);
     RiverManager.updateRiverEntities(this, delta / 1000);
     RiverManager.checkPlayerOnFloating(this);
     RiverManager.movePlayerWithEntity(this, delta / 1000);
@@ -614,6 +625,9 @@ class GameScene extends Phaser.Scene {
     if (typeof RiverManager !== 'undefined') RiverManager.clearRiverEntities(this);
     if (typeof GoalManager !== 'undefined') GoalManager.clearGoalBays(this);
     if (typeof PickupManager !== 'undefined') PickupManager.clearPickups(this);
+    if (this.bikes) this.bikes.clear(true, true);
+    this._bikeOnScreen = false;
+    this._bikeSpawnTimer = 0;
     this.player.setPosition(GameConfig.gameWidthHalf, this.startRowY);
     this.player.setAlpha(1);
     this.player.setVelocity(0, 0);
@@ -630,6 +644,41 @@ class GameScene extends Phaser.Scene {
     if (this.isBonus() && this._bonusStrictNearMisses) {
       this._nearMissEntities = [];
       if (this.hudRenderer) this.hudRenderer.updateNearMissCount(0);
+    }
+  }
+
+  _updateBikes(time, delta) {
+    if (!this.bikes || !this.gameActive) return;
+
+    const dt = delta / 1000;
+    const margin = 80;
+    const left = -margin;
+    const right = this.gameWidth + margin;
+    const bikeLaneY = LANE_DATA.getY(LANE_DATA.sidewalkLane, this.gameHeight, this.tileSize);
+    const bikeSpeed = 300; // Fast speed for bikes
+
+    // Move existing bikes
+    this.bikes.getChildren().forEach(bike => {
+      if (!bike.active) return;
+      bike.x += bikeSpeed * dt;
+      if (bike.x > right) {
+        bike.destroy();
+        this._bikeOnScreen = false;
+      }
+    });
+
+    // Spawn new bike if none on screen and random timer elapsed
+    if (!this._bikeOnScreen) {
+      this._bikeSpawnTimer += delta;
+      // Random spawn interval: 3-8 seconds
+      const spawnInterval = Phaser.Math.Between(3000, 8000);
+      if (this._bikeSpawnTimer >= spawnInterval) {
+        this._bikeSpawnTimer = 0;
+        const bike = this.bikes.create(left, bikeLaneY, 'bike');
+        bike.setData('lane', LANE_DATA.sidewalkLane);
+        bike.setDepth(5);
+        this._bikeOnScreen = true;
+      }
     }
   }
 

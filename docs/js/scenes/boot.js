@@ -114,6 +114,9 @@ class BootScene extends Phaser.Scene {
     this.makePickupFallback('pickup_shield', 0x44aaff, 'shield');
     this.makePickupFallback('pickup_magnet', 0xff4444, 'magnet');
     this.makePickupFallback('pickup_key', 0xcc88ff, 'key');
+
+    // Bike fallback
+    this.makeBikeFallback();
   }
 
   makeVehicleFallback(key, color, w, h) {
@@ -273,5 +276,27 @@ class BootScene extends Phaser.Scene {
     }
     g.closePath();
     g.fillPath();
+  }
+
+  makeBikeFallback() {
+    if (this.textures.exists('bike')) return;
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    // Wheels
+    g.lineStyle(2, 0x333333, 1);
+    g.strokeCircle(10, 20, 5);
+    g.strokeCircle(30, 20, 5);
+    // Frame
+    g.lineStyle(2, 0x33aa55, 1);
+    g.lineBetween(10, 20, 20, 10);
+    g.lineBetween(20, 10, 30, 20);
+    g.lineBetween(20, 10, 20, 16);
+    // Handlebars
+    g.lineStyle(2, 0x333333, 1);
+    g.lineBetween(18, 10, 22, 10);
+    // Seat
+    g.fillStyle(0x333333, 1);
+    g.fillRect(7, 8, 6, 3);
+    g.generateTexture('bike', 40, 28);
+    g.destroy();
   }
 }

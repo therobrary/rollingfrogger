@@ -30,6 +30,9 @@ const AssetManifest = {
     manifest.lane_marker = `${this.assetBase}lane_marker.png`;
     manifest.obstacle_cone = `${this.assetBase}obstacle_cone.png`;
 
+    // Bike asset
+    manifest.bike = `${this.assetBase}bike_green.png`;
+
     return manifest;
   }
 };

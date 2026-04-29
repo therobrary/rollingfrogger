@@ -440,15 +440,10 @@ const ScoreManager = {
     // Fill the bay for visual feedback
     GoalManager.fillBay(scene, bay.index);
     scene.score += GameConfig.scoreBayFill;
-
-    // Trigger level completion immediately on reaching any goal bay
-    scene.gameActive = false;
-    scene.physics.pause();
     this.updateHUD(scene);
 
-    scene.time.delayedCall(500, () => {
-      scene.levelComplete();
-    });
+    // Trigger level completion — onLevelComplete handles all state management
+    scene.levelComplete();
   },
 
   onGameOver(scene) {
