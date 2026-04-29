@@ -103,4 +103,52 @@ const LANE_DATA = {
   getLaneFromY: function(playerY, startRowY, tileSize) {
     return Math.round((startRowY - playerY) / tileSize) - 1;
   },
+
+  // Endless mode lane templates - procedural generator uses these as building blocks
+  // Each template defines a sequence of lane types for a section
+  endlessTemplates: {
+    roadSection: [
+      { type: 'road', direction: -1 },
+      { type: 'road', direction: -1 },
+      { type: 'road', direction: 1 },
+      { type: 'road', direction: 1 },
+      { type: 'safe', direction: 0 },
+      { type: 'road', direction: -1 },
+      { type: 'road', direction: 1 },
+      { type: 'safe', direction: 0 },
+    ],
+    riverSection: [
+      { type: 'river', direction: 0 },
+      { type: 'river', direction: 0 },
+      { type: 'road', direction: -1 },
+      { type: 'safe', direction: 0 },
+      { type: 'river', direction: 0 },
+      { type: 'road', direction: 1 },
+    ],
+    mixedSection: [
+      { type: 'road', direction: -1 },
+      { type: 'river', direction: 0 },
+      { type: 'safe', direction: 0 },
+      { type: 'road', direction: 1 },
+      { type: 'river', direction: 0 },
+      { type: 'safe', direction: 0 },
+      { type: 'road', direction: -1 },
+      { type: 'road', direction: 1 },
+    ],
+    safeSection: [
+      { type: 'safe', direction: 0 },
+      { type: 'safe', direction: 0 },
+      { type: 'road', direction: -1 },
+      { type: 'safe', direction: 0 },
+      { type: 'road', direction: 1 },
+      { type: 'safe', direction: 0 },
+    ],
+  },
+
+  // Endless mode: available road lane types for procedural generation
+  endlessRoadTypes: ['road-left', 'road-right'],
+
+  // Endless mode: section size range (number of lanes per section)
+  endlessSectionMinSize: 8,
+  endlessSectionMaxSize: 12,
 };

@@ -22,4 +22,17 @@ const GameConfig = {
   magnetDurationMs: 5000,
   pickupCollectionRadius: 28,
   maxPickupsOnScreen: 12,
+
+  // Endless mode configuration
+  endlessDistancePerLane: 10,
+  endlessDistanceScorePerLane: 10,
+  endlessNearMissRadius: 60,
+  endlessNearMissBasePoints: 50,
+  endlessNearMissComboMultiplier: 0.5,
+  endlessNearMissComboTimeout: 3000,
+  endlessCheckpointBonus: 200,
+  endlessMaxCombo: 10,
+  endlessDifficultyScale: 100,
+  endlessMaxDifficulty: 3,
+  endlessScrollSpeed: 0.05,
 };

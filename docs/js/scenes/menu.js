@@ -61,7 +61,7 @@ class MenuScene extends Phaser.Scene {
 
     // Play button with glow
     const btnX = width / 2 - 80;
-    const btnY = height * 0.62;
+    const btnY = height * 0.58;
     const playBtn = this.add.image(btnX + 80, btnY, 'btn_play').setInteractive({ useHandCursor: true });
 
     const playText = this.add.text(btnX + 80, btnY, 'PLAY', {
@@ -70,6 +70,52 @@ class MenuScene extends Phaser.Scene {
       color: '#ffffff',
       stroke: '#000000',
       strokeThickness: 4
+    }).setOrigin(0.5);
+
+    // Mode selection buttons
+    const modeBtnY = height * 0.72;
+    const modeBtnWidth = 160;
+    const modeBtnHeight = 36;
+    const classicBtnX = width / 2 - modeBtnWidth / 2;
+    const endlessBtnX = width / 2 + modeBtnWidth / 2 - 10;
+
+    ModeManager.init();
+    this._selectedMode = ModeManager.getMode();
+
+    // Classic mode button
+    this._classicBtn = this.add.rectangle(classicBtnX + modeBtnWidth / 2, modeBtnY, modeBtnWidth, modeBtnHeight, 0x224466)
+      .setInteractive({ useHandCursor: true });
+    this._classicBtnText = this.add.text(classicBtnX + modeBtnWidth / 2, modeBtnY, 'CLASSIC', {
+      fontSize: '16px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: this._selectedMode === 'classic' ? '#44ff88' : '#88aacc',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5);
+    this._classicBtn.on('pointerover', () => this._classicBtn.setFillStyle(0x336688));
+    this._classicBtn.on('pointerout', () => this._classicBtn.setFillStyle(this._selectedMode === 'classic' ? 0x226644 : 0x224466));
+    this._classicBtn.on('pointerdown', () => this._selectMode('classic'));
+
+    // Endless mode button
+    this._endlessBtn = this.add.rectangle(endlessBtnX + modeBtnWidth / 2, modeBtnY, modeBtnWidth, modeBtnHeight, 0x224466)
+      .setInteractive({ useHandCursor: true });
+    this._endlessBtnText = this.add.text(endlessBtnX + modeBtnWidth / 2, modeBtnY, 'ENDLESS', {
+      fontSize: '16px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: this._selectedMode === 'endless' ? '#44ff88' : '#88aacc',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5);
+    this._endlessBtn.on('pointerover', () => this._endlessBtn.setFillStyle(0x336688));
+    this._endlessBtn.on('pointerout', () => this._endlessBtn.setFillStyle(this._selectedMode === 'endless' ? 0x226644 : 0x224466));
+    this._endlessBtn.on('pointerdown', () => this._selectMode('endless'));
+
+    // Mode description text
+    this._modeDescription = this.add.text(width / 2, modeBtnY + 35, ModeManager.getModeDescription(this._selectedMode), {
+      fontSize: '12px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#667788',
+      align: 'center'
     }).setOrigin(0.5);
 
     // Button hover effects
@@ -92,7 +138,7 @@ class MenuScene extends Phaser.Scene {
       });
     });
     playBtn.on('pointerdown', () => {
-      this.scene.start('GameScene');
+      this.scene.start('GameScene', { mode: this._selectedMode });
     });
 
     // Instructions panel
@@ -129,5 +175,21 @@ class MenuScene extends Phaser.Scene {
       fontFamily: 'Arial, sans-serif',
       color: '#333344'
     }).setOrigin(0.5);
+  }
+
+  _selectMode(mode) {
+    this._selectedMode = mode;
+    ModeManager.setMode(mode);
+
+    // Update classic button
+    this._classicBtn.setFillStyle(mode === 'classic' ? 0x226644 : 0x224466);
+    this._classicBtnText.setColor(mode === 'classic' ? '#44ff88' : '#88aacc');
+
+    // Update endless button
+    this._endlessBtn.setFillStyle(mode === 'endless' ? 0x226644 : 0x224466);
+    this._endlessBtnText.setColor(mode === 'endless' ? '#44ff88' : '#88aacc');
+
+    // Update description
+    this._modeDescription.setText(ModeManager.getModeDescription(mode));
   }
 }

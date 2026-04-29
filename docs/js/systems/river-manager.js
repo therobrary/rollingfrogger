@@ -89,15 +89,6 @@ const RiverManager = {
     const entity = scene.ridingEntity;
     const moveAmount = entity.speed * dt;
     scene.player.x += moveAmount;
-
-    const margin = entity.width / 2 + 40;
-    const left = -margin;
-    const right = scene.gameWidth + margin;
-    if (scene.player.x < left) {
-      scene.player.x = right;
-    } else if (scene.player.x > right) {
-      scene.player.x = left;
-    }
   },
 
   // Drowning is checked after each player move, not per-frame in update().
@@ -108,8 +99,10 @@ const RiverManager = {
     if (!scene.player || !scene.gameActive || scene.drowning) return;
 
     const playerLane = scene.getPlayerLane();
-    const riverLanes = LANE_DATA.riverLanes || [];
-    if (!riverLanes.includes(playerLane)) return;
+    const isRiverLane = ModeManager.isEndless()
+      ? (scene.riverLaneIndices && scene.riverLaneIndices.has(playerLane))
+      : LANE_DATA.riverLanes.includes(playerLane);
+    if (!isRiverLane) return;
 
     const onFloating = this.checkPlayerOnFloating(scene);
     if (onFloating) return;
@@ -149,6 +142,9 @@ const RiverManager = {
       scene.drowning = false;
       scene.player.setVisible(true);
       scene.player.setPosition(GameConfig.gameWidthHalf, scene.startRowY);
+      if (ModeManager.isEndless()) {
+        scene.cameras.main.setScroll(0, 0);
+      }
     });
   },
 

@@ -54,6 +54,31 @@ class HUDRenderer {
       strokeThickness: 2
     }).setOrigin(1, 0).setDepth(101);
 
+    // Endless mode HUD elements (hidden by default)
+    this.distanceText = scene.add.text(12, 8, '', {
+      fontSize: '14px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#44ff88',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setDepth(101).setVisible(false);
+
+    this.comboText = scene.add.text(gameWidth / 2, 8, '', {
+      fontSize: '14px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#ffaa44',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5, 0).setDepth(101).setVisible(false);
+
+    this.comboMultiplierText = scene.add.text(gameWidth / 2, 28, '', {
+      fontSize: '11px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#ff8844',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5, 0).setDepth(101).setVisible(false);
+
     // Location label at bottom
     scene.add.text(gameWidth / 2, gameHeight - 10, 'Rolling Rd x Grigsby Dr', {
       fontSize: '11px',
@@ -73,5 +98,37 @@ class HUDRenderer {
     if (shieldActive) statusParts.push('\u25CF Shield');
     if (magnetActive) statusParts.push('\u25CF Magnet');
     this.statusText.setText(statusParts.join('  '));
+
+    // Hide endless mode elements
+    this.distanceText.setVisible(false);
+    this.comboText.setVisible(false);
+    this.comboMultiplierText.setVisible(false);
+  }
+
+  updateEndless(score, lives, distance, combo, highScore, currency, shieldActive, magnetActive) {
+    this.scoreText.setText(`Score: ${score}`);
+    this.livesText.setText('Lives: ' + '\u2665'.repeat(Math.max(0, lives)));
+
+    // Show endless mode elements
+    this.distanceText.setVisible(true);
+    this.comboText.setVisible(true);
+    this.comboMultiplierText.setVisible(true);
+
+    // Hide classic mode elements
+    this.levelText.setVisible(false);
+    this.highScoreText.setVisible(false);
+    this.currencyText.setVisible(false);
+    this.statusText.setVisible(false);
+
+    // Update endless mode HUD
+    this.distanceText.setText(`Distance: ${distance}`);
+    this.comboText.setText(combo > 0 ? `COMBO x${combo}` : '');
+
+    if (combo > 0) {
+      const multiplier = 1 + (combo - 1) * GameConfig.endlessNearMissComboMultiplier;
+      this.comboMultiplierText.setText(`x${multiplier.toFixed(1)} near-miss bonus`);
+    } else {
+      this.comboMultiplierText.setText('');
+    }
   }
 }

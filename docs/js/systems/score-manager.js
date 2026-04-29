@@ -3,7 +3,11 @@
 const ScoreManager = {
 
   updateHUD(scene) {
-    scene.hudRenderer.update(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive);
+    if (scene.isEndless && scene.isEndless()) {
+      scene.hudRenderer.updateEndless(scene.score, scene.lives, scene.distance, scene.combo, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive);
+    } else {
+      scene.hudRenderer.update(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive);
+    }
   },
 
   initHighScore(scene) {
@@ -46,6 +50,44 @@ const ScoreManager = {
   },
 
   onLevelComplete(scene) {
+    if (scene.isEndless && scene.isEndless()) {
+      // In endless mode, level complete triggers a new section generation
+      scene.gameActive = false;
+      scene.physics.pause();
+      scene.score += GameConfig.scoreLevelComplete;
+      scene.hopsCompleted = 0;
+      scene.level++;
+
+      const flash = scene.add.rectangle(
+        scene.gameWidth / 2,
+        scene.gameHeight / 2,
+        scene.gameWidth,
+        scene.gameHeight,
+        0x44ff88,
+        0.5
+      ).setDepth(200);
+
+      scene.tweens.add({
+        targets: flash,
+        alpha: 0,
+        duration: GameConfig.levelCompleteFlashMs,
+        onComplete: () => {
+          flash.destroy();
+          // Generate new section ahead
+          if (ScrollManager.tryApplyNextSection) {
+            ScrollManager.tryApplyNextSection(scene);
+          }
+          scene.rebuildLevel();
+          scene.showCountdown(`DISTANCE: ${scene.distance}`, () => {
+            scene.gameActive = true;
+            scene.physics.resume();
+            this.updateHUD(scene);
+          });
+        }
+      });
+      return;
+    }
+
     scene.gameActive = false;
     scene.physics.pause();
     scene.score += GameConfig.scoreLevelComplete;
@@ -154,6 +196,9 @@ const ScoreManager = {
       scene.player.setPosition(GameConfig.gameWidthHalf, scene.startRowY);
       scene.player.setVelocity(0, 0);
       scene.player.setAlpha(1);
+      if (ModeManager.isEndless()) {
+        scene.cameras.main.setScroll(0, 0);
+      }
       scene.physics.resume();
 
       if (scene.lives <= 0) {
