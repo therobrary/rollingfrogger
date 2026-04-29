@@ -13,7 +13,7 @@ class GoalBay {
   }
 
   createSprite() {
-    this.sprite = this.scene.add.image(this.x, this.y, 'tile_school')
+    this.sprite = this.scene.physics.add.image(this.x, this.y, 'tile_school')
       .setAlpha(0.3)
       .setDepth(5);
     this.sprite.setInteractive();

@@ -65,7 +65,7 @@ class MenuScene extends Phaser.Scene {
 
     // Play button with glow
     const btnX = width / 2 - 80;
-    const btnY = height * 0.58;
+    const btnY = height * 0.54;
     const playBtn = this.add.image(btnX + 80, btnY, 'btn_play').setInteractive({ useHandCursor: true });
 
     const playText = this.add.text(btnX + 80, btnY, 'PLAY', {
@@ -77,7 +77,7 @@ class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Mode selection buttons
-    const modeBtnY = height * 0.72;
+    const modeBtnY = height * 0.60;
     const modeBtnWidth = 160;
     const modeBtnHeight = 36;
     const classicBtnX = width / 2 - modeBtnWidth / 2;
@@ -89,7 +89,7 @@ class MenuScene extends Phaser.Scene {
 
     // Mode select button (opens full mode selection screen)
     const modeSelectBtnX = width / 2 - 60;
-    const modeSelectBtnY = height * 0.645;
+    const modeSelectBtnY = height * 0.565;
     const modeSelectBtn = this.add.rectangle(modeSelectBtnX + 60, modeSelectBtnY, 120, 30, 0x442266)
       .setInteractive({ useHandCursor: true });
     const modeSelectText = this.add.text(modeSelectBtnX + 60, modeSelectBtnY, 'ALL MODES', {
@@ -221,7 +221,7 @@ class MenuScene extends Phaser.Scene {
     });
 
     // Instructions panel
-    const instrY = height * 0.72;
+    const instrY = height * 0.74;
 
     this.add.text(width / 2, instrY, 'How to Play', {
       fontSize: '16px',
@@ -244,7 +244,7 @@ class MenuScene extends Phaser.Scene {
 
     // Equipped character display
     const equippedChar = CharacterRoster.getEquippedCharacter();
-    this.add.text(width / 2, instrY + 72, `Playing as: ${equippedChar.name}`, {
+    this.add.text(width / 2, instrY + 74, `Playing as: ${equippedChar.name}`, {
       fontSize: '12px',
       fontFamily: 'Arial, sans-serif',
       color: CHARACTER_DATA.rarityColors[equippedChar.rarity] || '#aaaaaa',
@@ -252,12 +252,19 @@ class MenuScene extends Phaser.Scene {
       strokeThickness: 2
     }).setOrigin(0.5);
 
+    // Action buttons row (chars, achieve, settings)
+    const actionBtnY = height * 0.83;
+    const actionBtnWidth = 70;
+    const actionBtnHeight = 30;
+    const actionGap = 10;
+    const totalActionWidth = 3 * actionBtnWidth + 2 * actionGap;
+    const actionStartX = width / 2 - totalActionWidth / 2;
+
     // Character select button
-    const charBtnX = width / 2 - 70;
-    const charBtnY = height * 0.86;
-    const charBtn = this.add.rectangle(charBtnX + 35, charBtnY, 70, 30, 0x224466)
+    const charBtnX = actionStartX;
+    const charBtn = this.add.rectangle(charBtnX + actionBtnWidth / 2, actionBtnY, actionBtnWidth, actionBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
-    const charBtnText = this.add.text(charBtnX + 35, charBtnY, 'CHARS', {
+    const charBtnText = this.add.text(charBtnX + actionBtnWidth / 2, actionBtnY, 'CHARS', {
       fontSize: '12px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#4488ff',
@@ -271,11 +278,10 @@ class MenuScene extends Phaser.Scene {
     });
 
     // Achievements button
-    const achBtnX = width / 2 - 150;
-    const achBtnY = height * 0.86;
-    const achBtn = this.add.rectangle(achBtnX + 35, achBtnY, 70, 30, 0x224466)
+    const achBtnX = charBtnX + actionBtnWidth + actionGap;
+    const achBtn = this.add.rectangle(achBtnX + actionBtnWidth / 2, actionBtnY, actionBtnWidth, actionBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
-    const achBtnText = this.add.text(achBtnX + 35, achBtnY, 'ACHIEVE', {
+    const achBtnText = this.add.text(achBtnX + actionBtnWidth / 2, actionBtnY, 'ACHIEVE', {
       fontSize: '10px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#ffaa00',
@@ -289,11 +295,10 @@ class MenuScene extends Phaser.Scene {
     });
 
     // Settings button
-    const settingsBtnX = width / 2 + 10;
-    const settingsBtnY = height * 0.86;
-    const settingsBtn = this.add.rectangle(settingsBtnX + 35, settingsBtnY, 70, 30, 0x224466)
+    const settingsBtnX = achBtnX + actionBtnWidth + actionGap;
+    const settingsBtn = this.add.rectangle(settingsBtnX + actionBtnWidth / 2, actionBtnY, actionBtnWidth, actionBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
-    const settingsBtnText = this.add.text(settingsBtnX + 35, settingsBtnY, 'SETTINGS', {
+    const settingsBtnText = this.add.text(settingsBtnX + actionBtnWidth / 2, actionBtnY, 'SETTINGS', {
       fontSize: '12px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#ffaa00',
@@ -308,7 +313,7 @@ class MenuScene extends Phaser.Scene {
 
     // Audio toggle button
     const audioBtnX = width / 2 - 150;
-    const audioBtnY = height * 0.92;
+    const audioBtnY = height * 0.89;
     if (typeof AudioManager !== 'undefined') AudioManager.init();
     this._audioEnabled = typeof AudioManager !== 'undefined';
     this._musicOn = this._audioEnabled && !AudioManager.isMusicMuted();
@@ -328,7 +333,7 @@ class MenuScene extends Phaser.Scene {
 
     // Accessibility quick settings
     const accBtnX = width / 2 + 10;
-    const accBtnY = height * 0.92;
+    const accBtnY = height * 0.89;
     this._accBtn = this.add.rectangle(accBtnX + 35, accBtnY, 70, 26, 0x224466)
       .setInteractive({ useHandCursor: true });
     this._accBtnText = this.add.text(accBtnX + 35, accBtnY, 'ACCESS', {
