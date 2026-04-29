@@ -37,16 +37,15 @@ class GameScene extends Phaser.Scene {
 
     this.cameras.main.setBackgroundColor('#1a1a2e');
 
+    this.createVehicleGroups();
     this.drawPlayfield();
     this.createPlayer();
     this.createTraffic();
     this.createHUD();
     this.setupInput();
+    this.setupCollisions();
 
     this.physics.add.overlap(this.player, this.schoolTiles, this.reachGoal, null, this);
-    this.physics.add.overlap(this.player, this.cars, this.hitByVehicle, null, this);
-    this.physics.add.overlap(this.player, this.buses, this.hitByVehicle, null, this);
-    this.physics.add.overlap(this.player, this.trucks, this.hitByVehicle, null, this);
 
     this.updateHUD();
     this.physics.pause();
@@ -210,11 +209,28 @@ class GameScene extends Phaser.Scene {
     this.player.setAlpha(1);
   }
 
-  createTraffic() {
+  createVehicleGroups() {
     this.cars = this.physics.add.group();
     this.buses = this.physics.add.group();
     this.trucks = this.physics.add.group();
+  }
 
+  setupCollisions() {
+    this.physics.add.overlap(this.player, this.cars, this.hitByVehicle, null, this);
+    this.physics.add.overlap(this.player, this.buses, this.hitByVehicle, null, this);
+    this.physics.add.overlap(this.player, this.trucks, this.hitByVehicle, null, this);
+
+    // Vehicle-to-vehicle collisions (only within same lane)
+    const sameLane = (a, b) => a.getData('lane') === b.getData('lane');
+    this.physics.add.collider(this.cars, this.cars, null, sameLane);
+    this.physics.add.collider(this.buses, this.buses, null, sameLane);
+    this.physics.add.collider(this.trucks, this.trucks, null, sameLane);
+    this.physics.add.collider(this.cars, this.buses, null, sameLane);
+    this.physics.add.collider(this.cars, this.trucks, null, sameLane);
+    this.physics.add.collider(this.buses, this.trucks, null, sameLane);
+  }
+
+  createTraffic() {
     // All available vehicle types with their speed modifiers and physics groups
     const vehicleTypes = [
       { key: 'vehicle_car', group: 'cars', speedMod: 1.0 },
@@ -258,6 +274,7 @@ class GameScene extends Phaser.Scene {
         vehicle.setData('speed', speed * dir);
         vehicle.setData('lane', lane);
         vehicle.setDepth(5);
+        if (vehicle.body) vehicle.body.setVelocityX(speed * dir);
       }
     });
   }
@@ -363,9 +380,7 @@ class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    // Move vehicles every frame regardless of gameActive
-    // (they keep scrolling during countdowns and respawns)
-    const dt = delta / 1000; // convert ms to seconds
+    // Wrap vehicles around screen edges (physics engine handles movement via velocity)
     const margin = 80;
     const left = -margin;
     const right = this.gameWidth + margin;
@@ -374,8 +389,7 @@ class GameScene extends Phaser.Scene {
       group.getChildren().forEach(vehicle => {
         if (!vehicle.active) return;
         const speed = vehicle.getData('speed');
-        vehicle.x += speed * dt;
-        // Wrap around screen edges
+        // Wrap around screen edges (physics engine handles movement via velocity)
         if (speed > 0 && vehicle.x > right) {
           vehicle.x = left;
         } else if (speed < 0 && vehicle.x < left) {
@@ -493,6 +507,7 @@ class GameScene extends Phaser.Scene {
 
     this.player.setPosition(this.gameWidth / 2, this.startRowY);
     this.player.setAlpha(1);
+    this.player.setVelocity(0, 0);
 
     this.createTraffic();
   }
