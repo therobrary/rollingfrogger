@@ -124,7 +124,7 @@ class ModeSelectScene extends Phaser.Scene {
           this.scene.start('BonusModeScene');
         } else {
           ModeManager.setMode(mode.id);
-          this.scene.start('GameScene', { mode: mode.id });
+          this.scene.start('GameScene', { mode: mode.id, difficulty: ModeManager.getDifficulty() });
         }
       });
     });

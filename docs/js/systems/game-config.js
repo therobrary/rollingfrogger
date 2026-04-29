@@ -42,4 +42,14 @@ const GameConfig = {
   speedRunScoreMultiplier: 3,
   zenModeNoDeath: true,
   noMissStrictMode: true,
+
+  // Difficulty Director configuration
+  difficultyDirectorEnabled: true,
+  difficultyFeedbackDuration: 1500,
+  maxDifficultyLevel: 10,
+  minDifficultyLevel: 0,
+  adaptiveAdjustmentInterval: 15000,
+  trackingWindowSize: 60000,
+  deathsBeforeDownshift: 3,
+  successesBeforeUpshift: 5,
 };

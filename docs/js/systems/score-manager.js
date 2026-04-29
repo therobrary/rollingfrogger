@@ -27,11 +27,22 @@ const ScoreManager = {
 
   onHopForward(scene) {
     scene.hopsCompleted++;
-    scene.score += GameConfig.scorePerHop;
+    let points = GameConfig.scorePerHop;
+
+    // Apply difficulty director score multiplier
+    if (scene._difficultyDirector) {
+      points = Math.floor(points * scene._difficultyDirector.getScoreMultiplier());
+    }
+
+    scene.score += points;
 
     // Bonus for crossing middle road lanes
     if (LANE_DATA.rightRoadLanes.includes(scene.getPlayerLane())) {
-      scene.score += GameConfig.scoreCrossingBonus;
+      let bonus = GameConfig.scoreCrossingBonus;
+      if (scene._difficultyDirector) {
+        bonus = Math.floor(bonus * (scene._difficultyDirector.getScoreMultiplier() || 1));
+      }
+      scene.score += bonus;
     }
     return 'ok';
   },
@@ -61,7 +72,11 @@ const ScoreManager = {
       // In endless mode, level complete triggers a new section generation
       scene.gameActive = false;
       scene.physics.pause();
-      scene.score += GameConfig.scoreLevelComplete;
+      let endlessPoints = GameConfig.scoreLevelComplete;
+      if (scene._difficultyDirector) {
+        endlessPoints = Math.floor(endlessPoints * scene._difficultyDirector.getScoreMultiplier());
+      }
+      scene.score += endlessPoints;
       scene.hopsCompleted = 0;
       scene.level++;
       AchievementManager.trackCurrency(scene.currency);
@@ -99,7 +114,11 @@ const ScoreManager = {
 
     // Bonus mode level complete
     if (scene.isBonus && scene.isBonus()) {
-      scene.score += Math.floor(GameConfig.scoreLevelComplete * scene._bonusScoreMultiplier);
+      let bonusPoints = GameConfig.scoreLevelComplete;
+      if (scene._difficultyDirector) {
+        bonusPoints = Math.floor(bonusPoints * scene._difficultyDirector.getScoreMultiplier());
+      }
+      scene.score += Math.floor(bonusPoints * scene._bonusScoreMultiplier);
       scene.hopsCompleted = 0;
       scene.level++;
       ChallengeManager.checkChallengeProgress('levels', 1);
@@ -137,7 +156,11 @@ const ScoreManager = {
 
     scene.gameActive = false;
     scene.physics.pause();
-    scene.score += GameConfig.scoreLevelComplete;
+    let levelCompletePoints = GameConfig.scoreLevelComplete;
+    if (scene._difficultyDirector) {
+      levelCompletePoints = Math.floor(levelCompletePoints * scene._difficultyDirector.getScoreMultiplier());
+    }
+    scene.score += levelCompletePoints;
 
     AchievementManager.trackCurrency(scene.currency);
     AchievementManager.trackLevelComplete();
@@ -172,7 +195,48 @@ const ScoreManager = {
 
   onDrown(scene) {
     // Zen mode: no death
-    if (scene._bonusNoDeath) {
+    if (scene._bonusNoDeath || ModeManager.isZenMode()) {
+      return;
+    }
+
+    // Hardcore mode: one hit death
+    if (ModeManager.isHardcoreMode()) {
+      if (scene._perfectMode) scene._perfectMode = false;
+      scene.shieldActive = false;
+      scene.magnetActive = false;
+      scene.player.clearTint();
+      if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
+      if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
+      AchievementManager.trackDeath();
+
+      // Track death for difficulty director
+      if (scene._difficultyDirector) {
+        scene._difficultyDirector.trackDeath(scene);
+      }
+
+      scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
+      const flash = scene.add.rectangle(
+        scene.gameWidth / 2,
+        scene.gameHeight / 2,
+        scene.gameWidth,
+        scene.gameHeight,
+        0xff0000,
+        0.4
+      ).setDepth(200);
+      scene.tweens.add({
+        targets: flash,
+        alpha: 0,
+        duration: GameConfig.deathFlashMs,
+        onComplete: () => flash.destroy()
+      });
+
+      scene.gameActive = false;
+      scene.physics.pause();
+      ScoreManager.onGameOver(scene);
+      this._saveHighScore(scene);
+      scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
+        scene.scene.start('GameOverScene', { won: false, score: scene.score, level: scene.level, bonusMode: scene._bonusModeId });
+      });
       return;
     }
 
@@ -185,6 +249,11 @@ const ScoreManager = {
     if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
     if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
     AchievementManager.trackDeath();
+
+    // Track death for difficulty director
+    if (scene._difficultyDirector) {
+      scene._difficultyDirector.trackDeath(scene);
+    }
 
     scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
     const flash = scene.add.rectangle(
@@ -219,11 +288,54 @@ scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
     if (scene.gameActive === false) return;
 
     // Zen mode: no death, just flash and continue
-    if (scene._bonusNoDeath) {
+    if (scene._bonusNoDeath || ModeManager.isZenMode()) {
       scene.player.setAlpha(0.3);
       scene.cameras.main.shake(100, 0.01);
       scene.time.delayedCall(300, () => {
         scene.player.setAlpha(1);
+      });
+      return;
+    }
+
+    // Hardcore mode: one hit death
+    if (ModeManager.isHardcoreMode()) {
+      if (scene._perfectMode) scene._perfectMode = false;
+      scene.shieldActive = false;
+      scene.magnetActive = false;
+      scene.player.clearTint();
+      if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
+      if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
+      AchievementManager.trackDeath();
+
+      // Track death for difficulty director
+      if (scene._difficultyDirector) {
+        scene._difficultyDirector.trackDeath(scene);
+      }
+
+      scene.gameActive = false;
+      scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
+      const flash = scene.add.rectangle(
+        scene.gameWidth / 2,
+        scene.gameHeight / 2,
+        scene.gameWidth,
+        scene.gameHeight,
+        0xff0000,
+        0.4
+      ).setDepth(200);
+      scene.tweens.add({
+        targets: flash,
+        alpha: 0,
+        duration: GameConfig.deathFlashMs,
+        onComplete: () => flash.destroy()
+      });
+
+      scene.player.setAlpha(0.3);
+      scene.physics.pause();
+
+      ScoreManager.onGameOver(scene);
+      this._saveHighScore(scene);
+      scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
+        scene.scene.start('GameOverScene', { won: false, score: scene.score, level: scene.level, bonusMode: scene._bonusModeId });
       });
       return;
     }
@@ -239,6 +351,11 @@ scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
     if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
     if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
     AchievementManager.trackDeath();
+
+    // Track death for difficulty director
+    if (scene._difficultyDirector) {
+      scene._difficultyDirector.trackDeath(scene);
+    }
 
     scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
     const flash = scene.add.rectangle(

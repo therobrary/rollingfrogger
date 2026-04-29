@@ -36,6 +36,9 @@ class GameScene extends Phaser.Scene {
     this._bonusNoDeath = false;
     this._bonusStrictNearMisses = false;
     this._timeTrialRemaining = 0;
+    // Difficulty Director state
+    this._difficultyDirector = null;
+    this._hardcoreDeath = false;
   }
 
   init(data) {
@@ -86,6 +89,13 @@ class GameScene extends Phaser.Scene {
     ScoreManager.initHighScore(this);
     AchievementManager.init();
     ChallengeManager.init();
+
+    // Initialize Difficulty Director
+    const difficulty = data && data.difficulty ? data.difficulty : ModeManager.getDifficulty();
+    if (DifficultyDirector && BalanceData) {
+      this._difficultyDirector = DifficultyDirector.init(difficulty);
+    }
+    this._hardcoreDeath = false;
   }
 
   isEndless() {
@@ -140,6 +150,17 @@ class GameScene extends Phaser.Scene {
       CollisionManager.setupGoalOverlap(this);
     }
 
+    // Apply difficulty director multipliers
+    if (this._difficultyDirector) {
+      this._diffSpeedMult = this._difficultyDirector.getSpeedMultiplier();
+      this._diffDensityMult = this._difficultyDirector.getDensityMultiplier();
+      this._diffScoreMult = this._difficultyDirector.getScoreMultiplier();
+    } else {
+      this._diffSpeedMult = 1;
+      this._diffDensityMult = 1;
+      this._diffScoreMult = 1;
+    }
+
     // Apply bonus mode settings
     if (this.isBonus() && this._bonusModeId) {
       const bonusConfig = BonusManager.startBonusMode(this._bonusModeId);
@@ -169,11 +190,13 @@ class GameScene extends Phaser.Scene {
     this.laneDirections = laneDirections;
     this.laneRenderer.drawTrafficArrows(this, laneDirections, laneY);
     RiverManager.createRiverGroups(this);
-    RiverManager.spawnRiverEntities(this);
+    const safeZoneFreq = this._difficultyDirector ? this._difficultyDirector.getSafeZoneFrequency() : 1;
+    RiverManager.spawnRiverEntities(this, safeZoneFreq);
     this.createPlayer();
-    TrafficSpawner.createTraffic(this, laneDirections);
+    TrafficSpawner.createTraffic(this, laneDirections, 1, this._diffSpeedMult, this._diffDensityMult);
     PickupManager.createPickupGroup(this);
-    PickupManager.spawnPickups(this);
+    const pickupRate = this._difficultyDirector ? this._difficultyDirector.getPickupSpawnRate() : 1;
+    PickupManager.spawnPickups(this, pickupRate);
   }
 
   _setupEndlessMode() {
@@ -208,13 +231,14 @@ class GameScene extends Phaser.Scene {
     this.laneDirections = laneDirections;
     this.laneRenderer.drawTrafficArrows(this, laneDirections, laneY);
     RiverManager.createRiverGroups(this);
-    RiverManager.spawnRiverEntities(this);
+    const safeZoneFreq = this._difficultyDirector ? this._difficultyDirector.getSafeZoneFrequency() : 1;
+    RiverManager.spawnRiverEntities(this, safeZoneFreq);
     this.createPlayer();
 
-    // Apply speed multiplier to traffic
-    TrafficSpawner.createTraffic(this, laneDirections, this._bonusSpeedMultiplier);
+    TrafficSpawner.createTraffic(this, laneDirections, this._bonusSpeedMultiplier, this._diffSpeedMult, this._diffDensityMult);
     PickupManager.createPickupGroup(this);
-    PickupManager.spawnPickups(this);
+    const pickupRate = this._difficultyDirector ? this._difficultyDirector.getPickupSpawnRate() : 1;
+    PickupManager.spawnPickups(this, pickupRate);
 
     // Zen mode: no death, infinite lives
     if (this._bonusNoDeath) {
@@ -236,6 +260,15 @@ class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
+    // Update difficulty director
+    if (this._difficultyDirector && this.gameActive) {
+      this._difficultyDirector.update(this, time);
+      // Update cached multipliers
+      this._diffSpeedMult = this._difficultyDirector.getSpeedMultiplier();
+      this._diffDensityMult = this._difficultyDirector.getDensityMultiplier();
+      this._diffScoreMult = this._difficultyDirector.getScoreMultiplier();
+    }
+
     TrafficSpawner.updateTraffic(this, time);
     RiverManager.updateRiverEntities(this, delta / 1000);
     RiverManager.movePlayerWithEntity(this, delta / 1000);
@@ -297,6 +330,10 @@ class GameScene extends Phaser.Scene {
       const sectionEnd = this.currentSectionStart + this.currentSectionSize;
       if (playerLane >= sectionEnd - 1) {
         ScrollManager.onCheckpointReached(this);
+        // Track success for difficulty director
+        if (this._difficultyDirector) {
+          this._difficultyDirector.trackSuccess(this);
+        }
       }
     }
 
@@ -320,6 +357,10 @@ class GameScene extends Phaser.Scene {
   }
 
   levelComplete() {
+    // Track success for difficulty director
+    if (this._difficultyDirector) {
+      this._difficultyDirector.trackSuccess(this);
+    }
     ScoreManager.onLevelComplete(this);
     if (this._perfectMode && this.lives === this._livesAtStart) {
       AchievementManager.trackPerfectLevel();
@@ -536,7 +577,7 @@ class GameScene extends Phaser.Scene {
     this.player.setAlpha(1);
     this.player.setVelocity(0, 0);
     this.drowning = false;
-    TrafficSpawner.createTraffic(this, this.laneDirections, this._bonusSpeedMultiplier);
+    TrafficSpawner.createTraffic(this, this.laneDirections, this._bonusSpeedMultiplier, this._diffSpeedMult, this._diffDensityMult);
     if (typeof RiverManager !== 'undefined') {
       RiverManager.createRiverGroups(this);
       RiverManager.spawnRiverEntities(this);

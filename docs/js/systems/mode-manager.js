@@ -3,8 +3,14 @@
 
 const ModeManager = {
   STORAGE_KEY: 'rollingfrogger_mode',
+  DIFFICULTY_KEY: 'rollingfrogger_difficulty',
   DEFAULT_MODE: 'classic',
   VALID_MODES: ['classic', 'endless', 'bonus'],
+  VALID_DIFFICULTIES: ['easy', 'normal', 'hard', 'zen', 'hardcore'],
+  DEFAULT_DIFFICULTY: 'normal',
+  _currentDifficulty: 'normal',
+  _zenModeActive: false,
+  _hardcoreModeActive: false,
 
   // Initialize mode from localStorage or default
   init() {
@@ -15,8 +21,20 @@ const ModeManager = {
       } else {
         this._currentMode = this.DEFAULT_MODE;
       }
+      const savedDifficulty = localStorage.getItem(this.DIFFICULTY_KEY);
+      if (this.VALID_DIFFICULTIES.includes(savedDifficulty)) {
+        this._currentDifficulty = savedDifficulty;
+      } else {
+        this._currentDifficulty = this.DEFAULT_DIFFICULTY;
+      }
+      // Check for special modes
+      this._zenModeActive = this._currentDifficulty === 'zen';
+      this._hardcoreModeActive = this._currentDifficulty === 'hardcore';
     } catch (e) {
       this._currentMode = this.DEFAULT_MODE;
+      this._currentDifficulty = this.DEFAULT_DIFFICULTY;
+      this._zenModeActive = false;
+      this._hardcoreModeActive = false;
     }
     return this._currentMode;
   },
@@ -129,5 +147,72 @@ const ModeManager = {
     } catch (e) {
       return '';
     }
+  },
+
+  // Get current difficulty
+  getDifficulty() {
+    return this._currentDifficulty;
+  },
+
+  // Set difficulty
+  setDifficulty(difficulty) {
+    if (!this.VALID_DIFFICULTIES.includes(difficulty)) {
+      difficulty = this.DEFAULT_DIFFICULTY;
+    }
+    this._currentDifficulty = difficulty;
+    this._zenModeActive = difficulty === 'zen';
+    this._hardcoreModeActive = difficulty === 'hardcore';
+    try {
+      localStorage.setItem(this.DIFFICULTY_KEY, difficulty);
+    } catch (e) {}
+    return difficulty;
+  },
+
+  // Check if zen mode is active
+  isZenMode() {
+    return this._zenModeActive;
+  },
+
+  // Check if hardcore mode is active
+  isHardcoreMode() {
+    return this._hardcoreModeActive;
+  },
+
+  // Check if mode has no death
+  hasNoDeath() {
+    return this._zenModeActive;
+  },
+
+  // Check if mode is one-hit death
+  isOneHitDeath() {
+    return this._hardcoreModeActive;
+  },
+
+  // Get difficulty label
+  getDifficultyLabel() {
+    const d = this._currentDifficulty;
+    if (d === 'zen') return 'Zen';
+    if (d === 'hardcore') return 'Hardcore';
+    if (d === 'easy') return 'Easy';
+    if (d === 'hard') return 'Hard';
+    return 'Normal';
+  },
+
+  // Get difficulty description
+  getDifficultyDescription() {
+    const d = this._currentDifficulty;
+    if (d === 'zen') return BalanceData.zenMode.description;
+    if (d === 'hardcore') return BalanceData.hardcoreMode.description;
+    const config = BalanceData.getModeConfig(d);
+    return config ? config.description : BalanceData.difficultyModes.normal.description;
+  },
+
+  // Get all difficulty options for UI
+  getDifficultyOptions() {
+    return this.VALID_DIFFICULTIES.map(key => ({
+      key: key,
+      label: BalanceData.getModeConfig(key).label,
+      description: BalanceData.getModeConfig(key).description
+    }));
   }
 };

@@ -8,10 +8,21 @@ const TrafficSpawner = {
     scene.trucks = scene.physics.add.group();
   },
 
-  createTraffic(scene, laneDirections, bonusSpeedMultiplier) {
-    const speedMultiplier = (1 + (scene.level - 1) * VEHICLE_DATA.speedMultiplierPerLevel) * (bonusSpeedMultiplier || 1);
-    const densityMultiplier = Math.min(1 + (scene.level - 1) * VEHICLE_DATA.densityMultiplierPerLevel, VEHICLE_DATA.maxDensityMultiplier);
+  createTraffic(scene, laneDirections, bonusSpeedMultiplier, diffSpeedMult, diffDensityMult) {
+    // Combine difficulty director multipliers with level-based scaling
+    const diffSpeed = diffSpeedMult || 1;
+    const diffDensity = diffDensityMult || 1;
+    const levelSpeedMultiplier = 1 + (scene.level - 1) * VEHICLE_DATA.speedMultiplierPerLevel;
+    const speedMultiplier = levelSpeedMultiplier * (bonusSpeedMultiplier || 1) * diffSpeed;
+    const levelDensityMultiplier = Math.min(1 + (scene.level - 1) * VEHICLE_DATA.densityMultiplierPerLevel, VEHICLE_DATA.maxDensityMultiplier);
+    const densityMultiplier = Math.min(levelDensityMultiplier * diffDensity, VEHICLE_DATA.maxDensityMultiplier);
     const baseSpeed = scene.gameWidth / VEHICLE_DATA.baseSpeedDivisor;
+
+    // Get hazard variety from difficulty director
+    let hazardVariety = 1;
+    if (scene._difficultyDirector) {
+      hazardVariety = scene._difficultyDirector.getHazardVariety();
+    }
 
     laneDirections.forEach((laneInfo) => {
       const { lane, dir } = laneInfo;
@@ -20,7 +31,24 @@ const TrafficSpawner = {
       const laneOffset = Phaser.Math.Between(0, 100);
 
       for (let j = 0; j < vehiclesPerLane; j++) {
-        const vType = Phaser.Utils.Array.GetRandom(VEHICLE_DATA.types);
+        // Select vehicle type based on hazard variety
+        let vType;
+        if (scene._difficultyDirector && hazardVariety > 1) {
+          const availableTypes = VEHICLE_DATA.types.filter(t => {
+            if (BalanceData && BalanceData.hazardTypes) {
+              const hazardDef = BalanceData.hazardTypes.find(h => h.id === t.id);
+              if (hazardDef) {
+                const level = scene._difficultyDirector.getDifficultyLevel();
+                return level >= hazardDef.minDifficulty;
+              }
+            }
+            return true;
+          });
+          vType = availableTypes.length > 0 ? Phaser.Utils.Array.GetRandom(availableTypes) : Phaser.Utils.Array.GetRandom(VEHICLE_DATA.types);
+        } else {
+          vType = Phaser.Utils.Array.GetRandom(VEHICLE_DATA.types);
+        }
+
         const group = scene[vType.group];
         const speed = baseSpeed * speedMultiplier * vType.speedMod;
 

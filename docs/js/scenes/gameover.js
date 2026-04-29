@@ -155,9 +155,9 @@ class GameOverScene extends Phaser.Scene {
     });
     restartBtn.on('pointerdown', () => {
       if (this.bonusMode) {
-        this.scene.start('GameScene', { mode: 'bonus', bonusModeId: this.bonusMode });
+        this.scene.start('GameScene', { mode: 'bonus', difficulty: ModeManager.getDifficulty(), bonusModeId: this.bonusMode });
       } else {
-        this.scene.start('GameScene');
+        this.scene.start('GameScene', { mode: ModeManager.getMode(), difficulty: ModeManager.getDifficulty() });
       }
     });
 

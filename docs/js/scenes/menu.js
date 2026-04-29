@@ -81,6 +81,7 @@ class MenuScene extends Phaser.Scene {
 
     ModeManager.init();
     this._selectedMode = ModeManager.getMode();
+    this._selectedDifficulty = ModeManager.getDifficulty();
 
     // Mode select button (opens full mode selection screen)
     const modeSelectBtnX = width / 2 - 60;
@@ -142,6 +143,56 @@ class MenuScene extends Phaser.Scene {
       align: 'center'
     }).setOrigin(0.5);
 
+    // Difficulty selector
+    const diffLabelY = modeBtnY + 60;
+    this.add.text(width / 2, diffLabelY, 'Difficulty', {
+      fontSize: '13px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#888899',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    const diffBtnY = diffLabelY + 22;
+    const diffBtnWidth = 48;
+    const diffBtnHeight = 26;
+    const diffGap = 6;
+    const totalDiffWidth = 5 * diffBtnWidth + 4 * diffGap;
+    const diffStartX = width / 2 - totalDiffWidth / 2;
+
+    this._diffButtons = [];
+    this._diffBtnTexts = [];
+
+    const diffOptions = ModeManager.getDifficultyOptions();
+    diffOptions.forEach((opt, i) => {
+      const x = diffStartX + i * (diffBtnWidth + diffGap) + diffBtnWidth / 2;
+      const isActive = opt.key === this._selectedDifficulty;
+      const btnColor = isActive ? 0x226644 : 0x334455;
+
+      const btn = this.add.rectangle(x, diffBtnY, diffBtnWidth, diffBtnHeight, btnColor)
+        .setInteractive({ useHandCursor: true });
+      const txt = this.add.text(x, diffBtnY, opt.label.toUpperCase(), {
+        fontSize: '11px',
+        fontFamily: 'Arial Black, Arial, sans-serif',
+        color: isActive ? '#44ff88' : '#88aacc',
+        stroke: '#000000',
+        strokeThickness: 2
+      }).setOrigin(0.5);
+
+      btn.on('pointerover', () => btn.setFillStyle(isActive ? 0x338855 : 0x445566));
+      btn.on('pointerout', () => btn.setFillStyle(isActive ? 0x226644 : 0x334455));
+      btn.on('pointerdown', () => this._selectDifficulty(opt.key));
+
+      this._diffButtons.push(btn);
+      this._diffBtnTexts.push(txt);
+    });
+
+    this._difficultyDescription = this.add.text(width / 2, diffBtnY + 22, ModeManager.getDifficultyDescription(), {
+      fontSize: '11px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#556677',
+      align: 'center'
+    }).setOrigin(0.5);
+
     // Button hover effects
     playBtn.on('pointerover', () => {
       playBtn.setTexture('btn_play_hover');
@@ -162,7 +213,7 @@ class MenuScene extends Phaser.Scene {
       });
     });
     playBtn.on('pointerdown', () => {
-      this.scene.start('GameScene', { mode: this._selectedMode });
+      this.scene.start('GameScene', { mode: this._selectedMode, difficulty: this._selectedDifficulty });
     });
 
     // Instructions panel
@@ -273,6 +324,22 @@ class MenuScene extends Phaser.Scene {
 
     // Update description
     this._modeDescription.setText(ModeManager.getModeDescription(mode));
+  }
+
+  _selectDifficulty(difficulty) {
+    this._selectedDifficulty = difficulty;
+    ModeManager.setDifficulty(difficulty);
+
+    // Update difficulty buttons
+    const diffOptions = ModeManager.getDifficultyOptions();
+    diffOptions.forEach((opt, i) => {
+      const isActive = opt.key === difficulty;
+      this._diffButtons[i].setFillStyle(isActive ? 0x226644 : 0x334455);
+      this._diffBtnTexts[i].setColor(isActive ? '#44ff88' : '#88aacc');
+    });
+
+    // Update description
+    this._difficultyDescription.setText(ModeManager.getDifficultyDescription());
   }
 
   _selectBonusMode() {

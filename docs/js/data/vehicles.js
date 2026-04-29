@@ -168,6 +168,22 @@ const CHALLENGE_DATA = {
 };
 
 // Rolling-Frogger - Bonus Mode Data Definitions
+// Rolling-Frogger - Vehicle Data Definitions
+const VEHICLE_DATA = {
+  baseSpeedDivisor: 12,
+  vehiclesPerLaneBase: 2,
+  vehiclesPerLaneScale: 1.5,
+  speedMultiplierPerLevel: 0.1,
+  densityMultiplierPerLevel: 0.15,
+  maxDensityMultiplier: 3.0,
+  vehicleWrapMargin: 100,
+  types: [
+    { id: 'car', key: 'car', group: 'cars', speedMod: 1.0 },
+    { id: 'bus', key: 'bus', group: 'buses', speedMod: 0.6 },
+    { id: 'truck', key: 'truck', group: 'trucks', speedMod: 0.8 }
+  ]
+};
+
 const BONUS_MODE_DATA = {
   modes: [
     {

@@ -8,42 +8,77 @@ const RiverManager = {
     scene.turtles = scene.physics.add.group();
   },
 
-  spawnRiverEntities(scene) {
+  spawnRiverEntities(scene, safeZoneFrequency) {
     const riverLanes = LANE_DATA.riverLanes || [];
     const riverDefs = LANE_DATA.riverLaneDefs || [];
+    const freqMult = safeZoneFrequency || 1;
 
     riverLanes.forEach((laneIndex, ri) => {
       const def = riverDefs[ri] || {};
       const entities = def.entities || [];
-      const numEntities = entities.length || 3;
+      let numEntities = entities.length || 3;
+
+      // Adjust entity count based on difficulty director
+      if (scene._difficultyDirector) {
+        const densityMult = scene._difficultyDirector.getDensityMultiplier();
+        const safeZoneFreq = scene._difficultyDirector.getSafeZoneFrequency();
+        numEntities = Math.max(1, Math.floor(numEntities * densityMult * (1 / safeZoneFreq)));
+      }
+
       const baseSpeed = def.speed || 80;
       const dir = def.direction || -1;
 
       for (let i = 0; i < numEntities; i++) {
-        const entityDef = entities[i] || entities[0] || { type: 'log', width: 56 };
+        const entityDef = entities[i % entities.length] || { type: 'log', width: 56 };
         const x = Phaser.Math.Between(40, scene.gameWidth - 40);
         const y = LANE_DATA.getY(laneIndex, scene.gameHeight, LANE_DATA.TILE_SIZE);
         const speed = baseSpeed * (0.7 + Math.random() * 0.6) * dir;
 
-        const texture = entityDef.type === 'turtle' ? 'turtle' : 'log';
-        const entity = new FloatingEntity(scene, x, y, texture, entityDef.type);
-        entity.setSpeed(speed);
-        entity.width = entityDef.width || 56;
-        entity.setData('lane', laneIndex);
-        entity.setData('speed', speed);
-        entity.setDepth(4);
-        entity.body.setAllowGravity(false);
-        entity.body.setImmovable(true);
-        entity.onWrap = (deltaX) => {
-          if (scene.ridingEntity === entity) {
-            scene.player.x += deltaX;
-          }
-        };
+        // Apply difficulty speed multiplier
+        if (scene._difficultyDirector) {
+          const speedMult = scene._difficultyDirector.getSpeedMultiplier();
+          const adjustedSpeed = baseSpeed * speedMult * (0.7 + Math.random() * 0.6) * dir;
+          const texture = entityDef.type === 'turtle' ? 'turtle' : 'log';
+          const entity = new FloatingEntity(scene, x, y, texture, entityDef.type);
+          entity.setSpeed(adjustedSpeed);
+          entity.width = entityDef.width || 56;
+          entity.setData('lane', laneIndex);
+          entity.setData('speed', adjustedSpeed);
+          entity.setDepth(4);
+          entity.body.setAllowGravity(false);
+          entity.body.setImmovable(true);
+          entity.onWrap = (deltaX) => {
+            if (scene.ridingEntity === entity) {
+              scene.player.x += deltaX;
+            }
+          };
 
-        if (entityDef.type === 'turtle') {
-          scene.turtles.add(entity);
+          if (entityDef.type === 'turtle') {
+            scene.turtles.add(entity);
+          } else {
+            scene.logs.add(entity);
+          }
         } else {
-          scene.logs.add(entity);
+          const texture = entityDef.type === 'turtle' ? 'turtle' : 'log';
+          const entity = new FloatingEntity(scene, x, y, texture, entityDef.type);
+          entity.setSpeed(speed);
+          entity.width = entityDef.width || 56;
+          entity.setData('lane', laneIndex);
+          entity.setData('speed', speed);
+          entity.setDepth(4);
+          entity.body.setAllowGravity(false);
+          entity.body.setImmovable(true);
+          entity.onWrap = (deltaX) => {
+            if (scene.ridingEntity === entity) {
+              scene.player.x += deltaX;
+            }
+          };
+
+          if (entityDef.type === 'turtle') {
+            scene.turtles.add(entity);
+          } else {
+            scene.logs.add(entity);
+          }
         }
       }
     });
