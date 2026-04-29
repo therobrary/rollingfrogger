@@ -56,13 +56,16 @@ const TrafficSpawner = {
         const x = spacing * (j + 1) + laneOffset + Phaser.Math.Between(-40, 40);
         const y = scene.gameHeight - (lane + LANE_DATA.startRowOffset) * LANE_DATA.TILE_SIZE + LANE_DATA.TILE_SIZE / 2;
 
-        const vehicle = group.create(x, y, vType.key);
+         const vehicle = group.create(x, y, vType.key);
         vehicle.setData('speed', speed * dir);
-        vehicle.setData('lane', lane);
         vehicle.setDepth(5);
         if (vehicle.body) vehicle.body.setVelocityX(speed * dir);
       }
     });
+
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.playSFX('spawn');
+    }
   },
 
   updateTraffic(scene, time) {

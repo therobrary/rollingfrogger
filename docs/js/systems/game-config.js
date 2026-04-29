@@ -52,4 +52,14 @@ const GameConfig = {
   trackingWindowSize: 60000,
   deathsBeforeDownshift: 3,
   successesBeforeUpshift: 5,
+
+  // Accessibility configuration
+  colorblindModes: ['none', 'deuteranopia', 'tritanopia', 'achromatopsia'],
+  defaultReducedMotion: false,
+  defaultHighContrast: false,
+
+  // Performance configuration
+  maxParticles: 100,
+  particleBudget: 50,
+  audioEnabled: true,
 };

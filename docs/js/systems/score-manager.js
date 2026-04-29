@@ -2,13 +2,19 @@
 // Handles score, hops, lives, high-score, and HUD updates
 const ScoreManager = {
 
+  _playSFX(key) {
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.playSFX(key);
+    }
+  },
+
   updateHUD(scene) {
     const equippedChar = CharacterRoster ? CharacterRoster.getEquippedCharacter() : null;
     const charName = equippedChar ? equippedChar.name : null;
     if (scene.isEndless && scene.isEndless()) {
       scene.hudRenderer.updateEndless(scene.score, scene.lives, scene.distance, scene.combo, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive);
     } else if (scene.isBonus && scene.isBonus()) {
-      scene.hudRenderer.updateBonus(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive, charName, scene._bonusModeId, scene._timeTrialRemaining);
+      scene.hudRenderer.updateBonus(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive, charName, scene._bonusModeId, scene._timeTrialRemaining, scene._nearMissEntities.length);
     } else {
       scene.hudRenderer.update(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive, charName);
     }
@@ -27,6 +33,7 @@ const ScoreManager = {
 
   onHopForward(scene) {
     scene.hopsCompleted++;
+    this._playSFX('hop');
     let points = GameConfig.scorePerHop;
 
     // Apply difficulty director score multiplier
@@ -123,10 +130,7 @@ const ScoreManager = {
       scene.level++;
       ChallengeManager.checkChallengeProgress('levels', 1);
 
-      // Save stats for no-miss mode
-      if (scene._bonusStrictNearMisses) {
-        scene._nearMissEntities = [];
-      }
+ 
 
       const flash = scene.add.rectangle(
         scene.gameWidth / 2,
@@ -164,6 +168,11 @@ const ScoreManager = {
 
     AchievementManager.trackCurrency(scene.currency);
     AchievementManager.trackLevelComplete();
+
+    this._playSFX('levelComplete');
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.stopMusic();
+    }
 
     const flash = scene.add.rectangle(
       scene.gameWidth / 2,
@@ -209,6 +218,8 @@ const ScoreManager = {
       if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
       AchievementManager.trackDeath();
 
+      this._playSFX('death');
+
       // Track death for difficulty director
       if (scene._difficultyDirector) {
         scene._difficultyDirector.trackDeath(scene);
@@ -250,6 +261,8 @@ const ScoreManager = {
     if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
     AchievementManager.trackDeath();
 
+    this._playSFX('death');
+
     // Track death for difficulty director
     if (scene._difficultyDirector) {
       scene._difficultyDirector.trackDeath(scene);
@@ -274,7 +287,7 @@ const ScoreManager = {
     if (scene.lives <= 0) {
       ScoreManager.onGameOver(scene);
       this._saveHighScore(scene);
-scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
+      scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
         scene.scene.start('GameOverScene', { won: false, score: scene.score, level: scene.level, bonusMode: scene._bonusModeId });
       });
     } else {
@@ -306,6 +319,8 @@ scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
       if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
       if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
       AchievementManager.trackDeath();
+
+      this._playSFX('death');
 
       // Track death for difficulty director
       if (scene._difficultyDirector) {
@@ -351,6 +366,8 @@ scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
     if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
     if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
     AchievementManager.trackDeath();
+
+    this._playSFX('death');
 
     // Track death for difficulty director
     if (scene._difficultyDirector) {

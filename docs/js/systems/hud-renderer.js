@@ -127,6 +127,52 @@ class HUDRenderer {
       fontFamily: 'Arial, sans-serif',
       color: '#444466'
     }).setOrigin(0.5).setDepth(100);
+
+    // Pause button (top right, next to lives)
+    const pauseBtnX = gameWidth - 12;
+    const pauseBtnY = 8;
+    this.pauseBtn = scene.add.rectangle(pauseBtnX, pauseBtnY, 28, 28, 0x333355)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(101);
+    this._pauseBtnText = scene.add.text(pauseBtnX, pauseBtnY, 'II', {
+      fontSize: '14px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#aaaaaa',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(102);
+    this.pauseBtn.on('pointerover', () => this.pauseBtn.setFillStyle(0x444466));
+    this.pauseBtn.on('pointerout', () => this.pauseBtn.setFillStyle(0x333355));
+    this.pauseBtn.on('pointerdown', () => {
+      if (this._pauseCallback) this._pauseCallback();
+    });
+
+    // Accessibility indicators (top left, below score)
+    this.cbIndicator = scene.add.text(12, 44, '', {
+      fontSize: '10px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#888888',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setDepth(101);
+
+    this.motionIndicator = scene.add.text(12, 56, '', {
+      fontSize: '10px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#888888',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setDepth(101);
+
+    this.contrastIndicator = scene.add.text(12, 68, '', {
+      fontSize: '10px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#888888',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setDepth(101);
+
+    this._pauseCallback = null;
   }
 
   update(score, lives, level, hopsCompleted, highScore, currency, shieldActive, magnetActive, equippedCharName) {
@@ -189,7 +235,7 @@ class HUDRenderer {
     }
   }
 
-  updateBonus(score, lives, level, hopsCompleted, highScore, currency, shieldActive, magnetActive, equippedCharName, bonusModeId, timeTrialRemaining) {
+  updateBonus(score, lives, level, hopsCompleted, highScore, currency, shieldActive, magnetActive, equippedCharName, bonusModeId, timeTrialRemaining, nearMissCount) {
     this.scoreText.setText(`Score: ${score}`);
     this.livesText.setText(lives >= 999 ? 'Zen' : 'Lives: ' + '\u2665'.repeat(Math.max(0, lives)));
 
@@ -235,7 +281,7 @@ class HUDRenderer {
     // No Miss: show near miss counter
     if (bonusModeId === 'no_miss') {
       this.nearMissText.setVisible(true);
-      this.nearMissText.setText('Near Misses: 0');
+      this.nearMissText.setText(`Near Misses: ${nearMissCount || 0}`);
     } else {
       this.nearMissText.setVisible(false);
     }
@@ -252,6 +298,34 @@ class HUDRenderer {
   updateNearMissCount(count) {
     if (this.nearMissText.visible) {
       this.nearMissText.setText(`Near Misses: ${count}`);
+    }
+  }
+
+  setPauseCallback(callback) {
+    this._pauseCallback = callback;
+  }
+
+  updateAccessibilityIndicators(cbMode, reducedMotion, highContrast) {
+    if (cbMode && cbMode !== 'none') {
+      const modeNames = { deuteranopia: 'DC', tritanopia: 'TC', achromatopsia: 'AC' };
+      this.cbIndicator.setText(`CB: ${modeNames[cbMode] || cbMode}`);
+      this.cbIndicator.setVisible(true);
+    } else {
+      this.cbIndicator.setVisible(false);
+    }
+
+    if (reducedMotion) {
+      this.motionIndicator.setText('Motion: Off');
+      this.motionIndicator.setVisible(true);
+    } else {
+      this.motionIndicator.setVisible(false);
+    }
+
+    if (highContrast) {
+      this.contrastIndicator.setText('High Contrast');
+      this.contrastIndicator.setVisible(true);
+    } else {
+      this.contrastIndicator.setVisible(false);
     }
   }
 }

@@ -39,6 +39,8 @@ class GameScene extends Phaser.Scene {
     // Difficulty Director state
     this._difficultyDirector = null;
     this._hardcoreDeath = false;
+    // Phase 9: Polish systems
+    this._paused = false;
   }
 
   init(data) {
@@ -90,8 +92,25 @@ class GameScene extends Phaser.Scene {
     AchievementManager.init();
     ChallengeManager.init();
 
+    // Initialize accessibility settings
+    Accessibility.init();
+    this._reducedMotion = Accessibility.getReducedMotion();
+    this._highContrast = Accessibility.getHighContrast();
+    this._colorblindMode = Accessibility.getColorblindMode();
+
+    // Initialize particle manager
+    if (typeof ParticleManager !== 'undefined') {
+      ParticleManager.init(this._reducedMotion);
+    }
+
+    // Initialize audio manager
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.init();
+    }
+
     // Initialize Difficulty Director
     const difficulty = data && data.difficulty ? data.difficulty : ModeManager.getDifficulty();
+    this._difficulty = difficulty;
     if (DifficultyDirector && BalanceData) {
       this._difficultyDirector = DifficultyDirector.init(difficulty);
     }
@@ -129,7 +148,11 @@ class GameScene extends Phaser.Scene {
     this._equippedCharId = CharacterRoster.getEquippedId();
     AchievementManager.trackCharacterPlayed(this._equippedCharId);
 
-    this.cameras.main.setBackgroundColor('#1a1a2e');
+    let bgColor = '#1a1a2e';
+    if (Accessibility.getHighContrast()) {
+      bgColor = '#000000';
+    }
+    this.cameras.main.setBackgroundColor(bgColor);
 
     TrafficSpawner.createVehicleGroups(this);
 
@@ -142,6 +165,16 @@ class GameScene extends Phaser.Scene {
     }
 
     this.hudRenderer.create(this, this.gameWidth, this.gameHeight);
+    this.hudRenderer.setPauseCallback(() => this._togglePause());
+    this.hudRenderer.updateAccessibilityIndicators(
+      Accessibility.getColorblindMode(),
+      Accessibility.getReducedMotion(),
+      Accessibility.getHighContrast()
+    );
+
+    // Setup pause via ESC key
+    this.input.keyboard.on('keydown-ESC', () => this._togglePause());
+
     PlayerController.setupInput(this);
     CollisionManager.setupCollisions(this);
 
@@ -276,6 +309,12 @@ class GameScene extends Phaser.Scene {
     PickupManager.checkPickupCollection(this);
     PickupManager.updateIndicators(this);
     PickupManager.attractPickupsToPlayer(this);
+
+    // Update particle system
+    if (typeof ParticleManager !== 'undefined') {
+      ParticleManager.update(delta / 1000);
+      this._renderParticles();
+    }
 
     // Endless mode: scroll manager and near-miss detection
     if (this.isEndless()) {
@@ -436,6 +475,7 @@ class GameScene extends Phaser.Scene {
         if (!alreadyCounted) {
           this._nearMissEntities.push({ id: vehicleId, time: time, dist: dist });
           this._registerNearMiss(time);
+          if (this.hudRenderer) this.hudRenderer.updateNearMissCount(this._nearMissEntities.length);
         }
       }
     }
@@ -588,6 +628,43 @@ class GameScene extends Phaser.Scene {
     // Reset near miss tracking for no-miss mode
     if (this.isBonus() && this._bonusStrictNearMisses) {
       this._nearMissEntities = [];
+      if (this.hudRenderer) this.hudRenderer.updateNearMissCount(0);
     }
   }
+
+  _togglePause() {
+    if (this._paused) {
+      PauseMenuInstance.resume(this);
+      this._paused = false;
+    } else if (this.gameActive || this.physics.isPaused) {
+      this.gameActive = false;
+      this.physics.pause();
+      PauseMenuInstance.show(this);
+      this._paused = true;
+    }
+  }
+
+  _renderParticles() {
+    if (this._reducedMotion) return;
+    const particles = ParticleManager._particles || [];
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      if (p.life <= 0) {
+        if (p.sprite) { p.sprite.destroy(); p.sprite = null; }
+        particles.splice(i, 1);
+        continue;
+      }
+      if (!p.sprite) {
+        p.sprite = this.add.circle(p.x, p.y, p.size || 3, Phaser.Display.Color.HexStringToColor(p.color).color, p.life || 1)
+          .setDepth(50);
+      }
+      if (p.sprite) {
+        p.sprite.x = p.x;
+        p.sprite.y = p.y;
+        p.sprite.setAlpha(p.life);
+      }
+    }
+  }
+
+ 
 }

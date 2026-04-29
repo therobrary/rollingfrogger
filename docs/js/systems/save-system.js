@@ -63,6 +63,10 @@ const SaveSystem = {
       const data = this.load(key);
       if (data) saveData[key] = data;
     }
+    try {
+      const accData = localStorage.getItem('rollingfrogger_accessibility');
+      if (accData) saveData.accessibility = JSON.parse(accData);
+    } catch (e) {}
     const exportObj = {
       version: this.VERSION,
       exportDate: new Date().toISOString(),
@@ -109,6 +113,7 @@ const SaveSystem = {
         localStorage.removeItem(`rollingfrogger_beststats_${m}`);
       });
       localStorage.removeItem('rollingfrogger_mode');
+      localStorage.removeItem('rollingfrogger_accessibility');
     } catch (e) {}
   },
 };

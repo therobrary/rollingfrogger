@@ -148,6 +148,13 @@ const RiverManager = {
     const splashX = scene.player.x;
     const splashY = scene.player.y;
 
+    if (typeof ParticleManager !== 'undefined') {
+      ParticleManager.createSplash(splashX, splashY);
+    }
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.playSFX('splash');
+    }
+
     const splash = scene.add.circle(splashX, splashY, 8, 0x88ccff, 0.8);
     splash.setDepth(15);
     scene.tweens.add({

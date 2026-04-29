@@ -117,6 +117,17 @@ const PickupManager = {
     const data = pickup.collect(scene);
     if (!data) return;
 
+    // Play collection sound
+    if (typeof AudioManager !== 'undefined') {
+      AudioManager.playSFX('collect');
+    }
+
+    // Spawn collection particles
+    if (typeof ParticleManager !== 'undefined') {
+      const colors = { coin: '#ffdd44', star: '#ffaa44', shield: '#44aaff', magnet: '#ff4444', key: '#ffdd00' };
+      ParticleManager.createCollect(pickup.x, pickup.y, colors[data.type] || '#ffffff');
+    }
+
     // Track coins for achievements
     if (data.type === 'coin') {
       AchievementManager.trackCoin(true);
@@ -144,6 +155,9 @@ const PickupManager = {
   applyPickupEffect(scene, type) {
     switch (type) {
       case 'shield':
+        if (typeof AudioManager !== 'undefined') {
+          AudioManager.playSFX('shield');
+        }
         if (!scene.shieldActive) {
           scene.shieldActive = true;
           scene.player.setTint(0x44aaff);
