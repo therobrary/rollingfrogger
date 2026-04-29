@@ -16,7 +16,7 @@ class BootScene extends Phaser.Scene {
     let progressBar = null;
     this.load.on('progress', (value) => {
       if (progressBar) progressBar.destroy();
-      barBg.destroy();
+      else barBg.destroy();
       progressBar = this.add.rectangle(width / 2, height / 2, barWidth, barHeight, 0x00ff88);
       progressBar.setOrigin(0.5);
       progressBar.scaleX = value;
@@ -25,35 +25,18 @@ class BootScene extends Phaser.Scene {
 
     this.load.on('complete', () => {
       if (progressBar) progressBar.destroy();
-      barBg.destroy();
+      if (barBg.active) barBg.destroy();
     });
 
-    // Load PNG assets from docs/assets/ with fallbacks
-    this.load.image('player', `${this.assetBase}player_student.png`);
-    this.load.image('vehicle_car', `${this.assetBase}vehicle_car_red.png`);
-    this.load.image('vehicle_car_alt', `${this.assetBase}vehicle_car_green.png`);
-    this.load.image('vehicle_bus', `${this.assetBase}vehicle_bus_yellow.png`);
-    this.load.image('vehicle_truck', `${this.assetBase}vehicle_truck_blue.png`);
-    this.load.image('vehicle_sedan', `${this.assetBase}vehicle_sedan_purple.png`);
-    this.load.image('vehicle_van', `${this.assetBase}vehicle_van_orange.png`);
-    this.load.image('vehicle_suv', `${this.assetBase}vehicle_suv_white.png`);
-    this.load.image('vehicle_pickup', `${this.assetBase}vehicle_pickup_red.png`);
-    this.load.image('vehicle_sports', `${this.assetBase}vehicle_sports_yellow.png`);
-    this.load.image('vehicle_hatchback', `${this.assetBase}vehicle_hatchback_teal.png`);
-    this.load.image('tile_road', `${this.assetBase}tile_road.png`);
-    this.load.image('tile_median', `${this.assetBase}tile_median.png`);
-    this.load.image('tile_grass', `${this.assetBase}tile_grass.png`);
-    this.load.image('tile_sidewalk', `${this.assetBase}tile_sidewalk.png`);
-    this.load.image('tile_school', `${this.assetBase}tile_school_goal.png`);
-    this.load.image('lane_marker', `${this.assetBase}lane_marker.png`);
-    this.load.image('obstacle_cone', `${this.assetBase}obstacle_cone.png`);
-    this.load.image('bg_dark', `${this.assetBase}tile_bg_dark.png`);
+    // Load assets from manifest
+    const manifest = AssetManifest.build();
+    for (const [key, path] of Object.entries(manifest)) {
+      this.load.image(key, path);
+    }
 
     // Fallback procedural textures loaded in parallel
-    this.load.on('fileprogress', (file) => {
-      if (file.status === 4) {
-        console.warn(`[BootScene] Asset failed to load: ${file.key} - using fallback`);
-      }
+    this.load.on('loaderror', (file) => {
+      console.warn(`[BootScene] Asset failed to load: ${file.key} - using fallback`);
     });
   }
 
@@ -77,16 +60,9 @@ class BootScene extends Phaser.Scene {
     }
 
     // Vehicle fallbacks
-    this.makeVehicleFallback('vehicle_car', 0xdd3333, 48, 28);
-    this.makeVehicleFallback('vehicle_car_alt', 0x33aa55, 48, 28);
-    this.makeVehicleFallback('vehicle_bus', 0xddaa00, 64, 28);
-    this.makeVehicleFallback('vehicle_truck', 0x3366cc, 56, 28);
-    this.makeVehicleFallback('vehicle_sedan', 0x7b2d8b, 48, 28);
-    this.makeVehicleFallback('vehicle_van', 0xdd8800, 64, 28);
-    this.makeVehicleFallback('vehicle_suv', 0xcccccc, 56, 28);
-    this.makeVehicleFallback('vehicle_pickup', 0xcc2222, 56, 28);
-    this.makeVehicleFallback('vehicle_sports', 0xffcc00, 44, 28);
-    this.makeVehicleFallback('vehicle_hatchback', 0x22aaaa, 44, 28);
+    for (const vType of VEHICLE_DATA.types) {
+      this.makeVehicleFallback(vType.key, vType.color, vType.fallbackWidth, 28);
+    }
 
     // Tile fallbacks
     this.makeTileFallback('tile_road', 0x444444);
@@ -94,6 +70,11 @@ class BootScene extends Phaser.Scene {
     this.makeTileFallback('tile_grass', 0x33aa33);
     this.makeTileFallback('tile_sidewalk', 0x999999);
     this.makeTileFallback('tile_school', 0xcc4444);
+
+    // River textures
+    this.makeWaterTileFallback();
+    this.makeLogFallback();
+    this.makeTurtleFallback();
 
     // Utility textures
     if (!this.textures.exists('lane_marker')) {
@@ -160,6 +141,66 @@ class BootScene extends Phaser.Scene {
     g.lineStyle(2, 0x000000, 0.3);
     g.strokeRect(0, 0, 160, 48);
     g.generateTexture(key, 160, 48);
+    g.destroy();
+  }
+
+  makeWaterTileFallback() {
+    if (this.textures.exists('tile_water')) return;
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    g.fillStyle(0x2266aa, 1);
+    g.fillRect(0, 0, 64, 64);
+    g.fillStyle(0x3388cc, 0.5);
+    g.fillCircle(16, 16, 10);
+    g.fillCircle(48, 32, 8);
+    g.fillCircle(24, 48, 12);
+    g.fillCircle(52, 12, 6);
+    g.fillStyle(0x4499dd, 0.3);
+    g.fillCircle(32, 8, 14);
+    g.fillCircle(8, 40, 10);
+    g.fillCircle(56, 52, 9);
+    g.generateTexture('tile_water', 64, 64);
+    g.destroy();
+  }
+
+  makeLogFallback() {
+    if (this.textures.exists('log')) return;
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    g.fillStyle(0x8B5E3C, 1);
+    g.fillRoundedRect(0, 8, 56, 32, 8);
+    g.fillStyle(0xA0724A, 1);
+    g.fillRoundedRect(4, 12, 48, 24, 6);
+    g.fillStyle(0x6B3E1C, 1);
+    g.fillCircle(8, 24, 3);
+    g.fillCircle(20, 24, 2);
+    g.fillCircle(34, 24, 3);
+    g.fillCircle(46, 24, 2);
+    g.fillStyle(0x9B6E4C, 0.5);
+    g.fillRect(6, 14, 44, 2);
+    g.fillRect(6, 32, 44, 2);
+    g.generateTexture('log', 56, 48);
+    g.destroy();
+  }
+
+  makeTurtleFallback() {
+    if (this.textures.exists('turtle')) return;
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    g.fillStyle(0x2D5A1E, 1);
+    g.fillCircle(12, 24, 7);
+    g.fillCircle(44, 24, 7);
+    g.fillStyle(0x3D7A2E, 1);
+    g.fillEllipse(28, 24, 32, 28);
+    g.fillStyle(0x4D9A3E, 1);
+    g.fillEllipse(30, 22, 24, 22);
+    g.fillStyle(0xDDCC44, 1);
+    g.fillCircle(26, 18, 2.5);
+    g.fillCircle(34, 18, 2.5);
+    g.fillCircle(30, 26, 2.5);
+    g.fillCircle(26, 30, 2);
+    g.fillCircle(34, 30, 2);
+    g.fillStyle(0x2D5A1E, 1);
+    g.fillCircle(10, 24, 3);
+    g.fillCircle(46, 24, 3);
+    g.generateTexture('turtle', 56, 48);
     g.destroy();
   }
 }

@@ -1,0 +1,22 @@
+// Rolling-Frogger - Central game tuning configuration
+const GameConfig = {
+  gameWidth: 640,
+  gameWidthHalf: 320,
+  moveCooldown: 120,
+  moveDuration: 100,
+  scorePerHop: 25,
+  scoreCrossingBonus: 50, // lanes 4-6
+  scoreMedianBonus: 15,
+  scoreLevelComplete: 200,
+  scorePenalty: 50,
+  scoreBayFill: 100,
+  initialLives: 3,
+  initialLevel: 1,
+  deathPauseMs: 800,
+  deathTransitionMs: 500,
+  levelCompleteFlashMs: 600,
+  deathFlashMs: 300,
+  cameraShakeDuration: 200,
+  cameraShakeStrength: 0.015,
+  countdownDuration: 1200,
+};
