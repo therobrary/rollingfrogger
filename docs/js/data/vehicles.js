@@ -178,9 +178,16 @@ const VEHICLE_DATA = {
   maxDensityMultiplier: 3.0,
   vehicleWrapMargin: 100,
   types: [
-    { id: 'car', key: 'car', group: 'cars', speedMod: 1.0 },
-    { id: 'bus', key: 'bus', group: 'buses', speedMod: 0.6 },
-    { id: 'truck', key: 'truck', group: 'trucks', speedMod: 0.8 }
+    { id: 'vehicle_car', key: 'vehicle_car', asset: 'vehicle_car_red.png', color: 0xdd3333, fallbackWidth: 48, group: 'cars', speedMod: 1.0 },
+    { id: 'vehicle_car_alt', key: 'vehicle_car_alt', asset: 'vehicle_car_green.png', color: 0x33aa55, fallbackWidth: 48, group: 'cars', speedMod: 1.0 },
+    { id: 'vehicle_sedan', key: 'vehicle_sedan', asset: 'vehicle_sedan_purple.png', color: 0x7b2d8b, fallbackWidth: 48, group: 'cars', speedMod: 1.0 },
+    { id: 'vehicle_sports', key: 'vehicle_sports', asset: 'vehicle_sports_yellow.png', color: 0xffcc00, fallbackWidth: 44, group: 'cars', speedMod: 1.1 },
+    { id: 'vehicle_hatchback', key: 'vehicle_hatchback', asset: 'vehicle_hatchback_teal.png', color: 0x22aaaa, fallbackWidth: 44, group: 'cars', speedMod: 1.0 },
+    { id: 'vehicle_bus', key: 'vehicle_bus', asset: 'vehicle_bus_yellow.png', color: 0xddaa00, fallbackWidth: 64, group: 'buses', speedMod: 0.8 },
+    { id: 'vehicle_van', key: 'vehicle_van', asset: 'vehicle_van_orange.png', color: 0xdd8800, fallbackWidth: 64, group: 'buses', speedMod: 0.85 },
+    { id: 'vehicle_truck', key: 'vehicle_truck', asset: 'vehicle_truck_blue.png', color: 0x3366cc, fallbackWidth: 56, group: 'trucks', speedMod: 0.85 },
+    { id: 'vehicle_suv', key: 'vehicle_suv', asset: 'vehicle_suv_white.png', color: 0xcccccc, fallbackWidth: 56, group: 'trucks', speedMod: 0.9 },
+    { id: 'vehicle_pickup', key: 'vehicle_pickup', asset: 'vehicle_pickup_red.png', color: 0xcc2222, fallbackWidth: 56, group: 'trucks', speedMod: 0.9 }
   ]
 };
 
