@@ -215,36 +215,46 @@ class GameScene extends Phaser.Scene {
     this.buses = this.physics.add.group();
     this.trucks = this.physics.add.group();
 
+    // All available vehicle types with their speed modifiers and physics groups
+    const vehicleTypes = [
+      { key: 'vehicle_car', group: 'cars', speedMod: 1.0 },
+      { key: 'vehicle_car_alt', group: 'cars', speedMod: 1.0 },
+      { key: 'vehicle_sedan', group: 'cars', speedMod: 1.0 },
+      { key: 'vehicle_sports', group: 'cars', speedMod: 1.1 },
+      { key: 'vehicle_hatchback', group: 'cars', speedMod: 1.0 },
+      { key: 'vehicle_bus', group: 'buses', speedMod: 0.8 },
+      { key: 'vehicle_van', group: 'buses', speedMod: 0.85 },
+      { key: 'vehicle_truck', group: 'trucks', speedMod: 0.85 },
+      { key: 'vehicle_suv', group: 'trucks', speedMod: 0.9 },
+      { key: 'vehicle_pickup', group: 'trucks', speedMod: 0.9 },
+    ];
+
     const speedMultiplier = 1 + (this.level - 1) * 0.06;
     const densityMultiplier = Math.min(1 + (this.level - 1) * 0.10, 1.5);
 
     this.laneDirections.forEach((laneInfo, idx) => {
       const { lane, dir } = laneInfo;
-      // Target: vehicles take ~3s to cross the 640px screen at level 1
-      // speed is applied as `speed * delta / 1000` → px/s
-      const baseSpeed = this.gameWidth / 3; // ~213 px/s — same for all lanes at level 1
-      let vehicleType;
-      if (lane < 3) {
-        vehicleType = lane === 0 ? 'vehicle_bus' : (lane === 1 ? 'vehicle_car' : 'vehicle_truck');
-      } else {
-        vehicleType = lane === 4 ? 'vehicle_car_alt' : (lane === 5 ? 'vehicle_truck' : 'vehicle_bus');
-      }
-      let speed = baseSpeed * speedMultiplier;
-      if (vehicleType === 'vehicle_bus') speed *= 0.8;
-      if (vehicleType === 'vehicle_truck') speed *= 0.85;
+      const baseSpeed = this.gameWidth / 3;
 
-      const group = vehicleType === 'vehicle_bus' ? this.buses :
-                    (vehicleType === 'vehicle_car' || vehicleType === 'vehicle_car_alt' ? this.cars : this.trucks);
-
-      const vehiclesPerLane = Math.max(1, Math.ceil(1.5 * densityMultiplier));
-      const spacing = this.gameWidth / (vehiclesPerLane + 1);
+      // Random number of vehicles per lane (1-4, scaled by density)
+      const maxVehicles = Math.floor(2 + 2 * densityMultiplier);
+      const vehiclesPerLane = Phaser.Math.Between(1, Math.max(1, maxVehicles));
+      
+      // Random starting offset for this lane
+      const laneOffset = Phaser.Math.Between(0, 100);
 
       for (let j = 0; j < vehiclesPerLane; j++) {
-        const vehicle = group.create(
-          spacing * (j + 1) + Phaser.Math.Between(-30, 30),
-          this.gameHeight - (lane + 2) * this.tileSize + this.tileSize / 2,
-          vehicleType
-        );
+        // Pick a random vehicle type for each vehicle
+        const vType = Phaser.Utils.Array.GetRandom(vehicleTypes);
+        const group = this[vType.group];
+        const speed = baseSpeed * speedMultiplier * vType.speedMod;
+
+        // Space vehicles with random jitter
+        const spacing = this.gameWidth / (vehiclesPerLane + 1);
+        const x = spacing * (j + 1) + laneOffset + Phaser.Math.Between(-40, 40);
+        const y = this.gameHeight - (lane + 2) * this.tileSize + this.tileSize / 2;
+
+        const vehicle = group.create(x, y, vType.key);
         vehicle.setData('speed', speed * dir);
         vehicle.setData('lane', lane);
         vehicle.setDepth(5);

@@ -34,6 +34,12 @@ class BootScene extends Phaser.Scene {
     this.load.image('vehicle_car_alt', `${this.assetBase}vehicle_car_green.png`);
     this.load.image('vehicle_bus', `${this.assetBase}vehicle_bus_yellow.png`);
     this.load.image('vehicle_truck', `${this.assetBase}vehicle_truck_blue.png`);
+    this.load.image('vehicle_sedan', `${this.assetBase}vehicle_sedan_purple.png`);
+    this.load.image('vehicle_van', `${this.assetBase}vehicle_van_orange.png`);
+    this.load.image('vehicle_suv', `${this.assetBase}vehicle_suv_white.png`);
+    this.load.image('vehicle_pickup', `${this.assetBase}vehicle_pickup_red.png`);
+    this.load.image('vehicle_sports', `${this.assetBase}vehicle_sports_yellow.png`);
+    this.load.image('vehicle_hatchback', `${this.assetBase}vehicle_hatchback_teal.png`);
     this.load.image('tile_road', `${this.assetBase}tile_road.png`);
     this.load.image('tile_median', `${this.assetBase}tile_median.png`);
     this.load.image('tile_grass', `${this.assetBase}tile_grass.png`);
@@ -75,6 +81,12 @@ class BootScene extends Phaser.Scene {
     this.makeVehicleFallback('vehicle_car_alt', 0x33aa55, 48, 28);
     this.makeVehicleFallback('vehicle_bus', 0xddaa00, 64, 28);
     this.makeVehicleFallback('vehicle_truck', 0x3366cc, 56, 28);
+    this.makeVehicleFallback('vehicle_sedan', 0x7b2d8b, 48, 28);
+    this.makeVehicleFallback('vehicle_van', 0xdd8800, 64, 28);
+    this.makeVehicleFallback('vehicle_suv', 0xcccccc, 56, 28);
+    this.makeVehicleFallback('vehicle_pickup', 0xcc2222, 56, 28);
+    this.makeVehicleFallback('vehicle_sports', 0xffcc00, 44, 28);
+    this.makeVehicleFallback('vehicle_hatchback', 0x22aaaa, 44, 28);
 
     // Tile fallbacks
     this.makeTileFallback('tile_road', 0x444444);
