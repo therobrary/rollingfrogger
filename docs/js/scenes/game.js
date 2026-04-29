@@ -221,16 +221,15 @@ class GameScene extends Phaser.Scene {
     this.laneDirections.forEach((laneInfo, idx) => {
       const { lane, dir } = laneInfo;
       const baseSpeed = 40 + idx * 12;
-      let speed = baseSpeed * speedMultiplier;
-      if (vehicleType === 'bus') speed *= 0.8;
-      if (vehicleType === 'truck') speed *= 0.85;
-
       let vehicleType;
       if (lane < 3) {
         vehicleType = lane === 0 ? 'vehicle_bus' : (lane === 1 ? 'vehicle_car' : 'vehicle_truck');
       } else {
         vehicleType = lane === 4 ? 'vehicle_car_alt' : (lane === 5 ? 'vehicle_truck' : 'vehicle_bus');
       }
+      let speed = baseSpeed * speedMultiplier;
+      if (vehicleType === 'vehicle_bus') speed *= 0.8;
+      if (vehicleType === 'vehicle_truck') speed *= 0.85;
 
       const group = vehicleType === 'vehicle_bus' ? this.buses :
                     (vehicleType === 'vehicle_car' || vehicleType === 'vehicle_car_alt' ? this.cars : this.trucks);
