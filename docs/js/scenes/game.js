@@ -215,13 +215,15 @@ class GameScene extends Phaser.Scene {
     this.buses = this.physics.add.group();
     this.trucks = this.physics.add.group();
 
-    const speedMultiplier = 1 + (this.level - 1) * 0.10;
-    const densityMultiplier = Math.min(1 + (this.level - 1) * 0.2, 1.5);
+    const speedMultiplier = 1 + (this.level - 1) * 0.06;
+    const densityMultiplier = Math.min(1 + (this.level - 1) * 0.10, 1.5);
 
     this.laneDirections.forEach((laneInfo, idx) => {
       const { lane, dir } = laneInfo;
-      const baseSpeed = 50 + idx * 15;
-      const speed = baseSpeed * speedMultiplier;
+      const baseSpeed = 40 + idx * 12;
+      let speed = baseSpeed * speedMultiplier;
+      if (vehicleType === 'bus') speed *= 0.8;
+      if (vehicleType === 'truck') speed *= 0.85;
 
       let vehicleType;
       if (lane < 3) {
@@ -233,7 +235,7 @@ class GameScene extends Phaser.Scene {
       const group = vehicleType === 'vehicle_bus' ? this.buses :
                     (vehicleType === 'vehicle_car' || vehicleType === 'vehicle_car_alt' ? this.cars : this.trucks);
 
-      const vehiclesPerLane = Math.ceil(2 * densityMultiplier);
+      const vehiclesPerLane = Math.max(1, Math.ceil(1.5 * densityMultiplier));
       const spacing = this.gameWidth / (vehiclesPerLane + 1);
 
       for (let j = 0; j < vehiclesPerLane; j++) {
