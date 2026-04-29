@@ -75,26 +75,26 @@ class GameScene extends Phaser.Scene {
     }
 
     // Bottom safe start row
-    this.add.image(centerX, this.startRowY, 'tile_sidewalk')
-      .setScale(this.gameWidth / tileSize, 1)
-      .setOrigin(0, 0.5)
-      .setAlpha(0.9);
+    for (let tx = 0; tx < Math.ceil(this.gameWidth / tileSize); tx++) {
+      this.add.image(tx * tileSize + tileSize / 2, this.startRowY, 'tile_sidewalk')
+        .setAlpha(0.9);
+    }
 
     // Bottom road lanes (0-2) - vehicles travel left
     for (let i = 0; i < 3; i++) {
-      this.add.image(centerX, laneY[i], 'tile_road')
-        .setScale(this.gameWidth / tileSize, 1)
-        .setOrigin(0, 0.5);
-      for (let tx = 0; tx < this.gameWidth / tileSize; tx++) {
+      for (let tx = 0; tx < Math.ceil(this.gameWidth / tileSize); tx++) {
+        this.add.image(tx * tileSize + tileSize / 2, laneY[i], 'tile_road');
+      }
+      for (let tx = 0; tx < Math.ceil(this.gameWidth / tileSize); tx++) {
         this.add.image(tx * tileSize + tileSize / 2, laneY[i], 'lane_marker')
           .setAlpha(0.4);
       }
     }
 
     // Median (lane 3) - safe zone indicator
-    this.add.image(centerX, laneY[3], 'tile_median')
-      .setScale(this.gameWidth / tileSize, 1)
-      .setOrigin(0, 0.5);
+    for (let tx = 0; tx < Math.ceil(this.gameWidth / tileSize); tx++) {
+      this.add.image(tx * tileSize + tileSize / 2, laneY[3], 'tile_median');
+    }
 
     // Lane label for median
     this.add.text(12, laneY[3] - 8, 'SAFE ZONE', {
@@ -106,19 +106,19 @@ class GameScene extends Phaser.Scene {
 
     // Top road lanes (4-6) - vehicles travel right
     for (let i = 4; i < 7; i++) {
-      this.add.image(centerX, laneY[i], 'tile_road')
-        .setScale(this.gameWidth / tileSize, 1)
-        .setOrigin(0, 0.5);
-      for (let tx = 0; tx < this.gameWidth / tileSize; tx++) {
+      for (let tx = 0; tx < Math.ceil(this.gameWidth / tileSize); tx++) {
+        this.add.image(tx * tileSize + tileSize / 2, laneY[i], 'tile_road');
+      }
+      for (let tx = 0; tx < Math.ceil(this.gameWidth / tileSize); tx++) {
         this.add.image(tx * tileSize + tileSize / 2, laneY[i], 'lane_marker')
           .setAlpha(0.4);
       }
     }
 
     // Grass strip (lane 7)
-    this.add.image(centerX, laneY[7], 'tile_grass')
-      .setScale(this.gameWidth / tileSize, 1)
-      .setOrigin(0, 0.5);
+    for (let tx = 0; tx < Math.ceil(this.gameWidth / tileSize); tx++) {
+      this.add.image(tx * tileSize + tileSize / 2, laneY[7], 'tile_grass');
+    }
 
     // Lane label for grass
     this.add.text(12, laneY[7] - 8, 'GRASS', {
@@ -129,9 +129,9 @@ class GameScene extends Phaser.Scene {
     }).setDepth(1);
 
     // Sidewalk/bike lane (lane 8)
-    this.add.image(centerX, laneY[8], 'tile_sidewalk')
-      .setScale(this.gameWidth / tileSize, 1)
-      .setOrigin(0, 0.5);
+    for (let tx = 0; tx < Math.ceil(this.gameWidth / tileSize); tx++) {
+      this.add.image(tx * tileSize + tileSize / 2, laneY[8], 'tile_sidewalk');
+    }
 
     // Lane label for sidewalk
     this.add.text(12, laneY[8] - 8, 'BIKE LANE', {
@@ -141,11 +141,15 @@ class GameScene extends Phaser.Scene {
       fontStyle: 'bold'
     }).setDepth(1);
 
-    // School goal (lane 9)
+    // School goal (lane 9) - grass on sides, centered school tiles
+    for (let tx = 0; tx < Math.ceil(this.gameWidth / tileSize); tx++) {
+      this.add.image(tx * tileSize + tileSize / 2, laneY[9], 'tile_grass');
+    }
     this.schoolTiles = this.add.group();
-    for (let tx = 0; tx < this.gameWidth / tileSize; tx++) {
+    const schoolCenterX = centerX - tileSize * 1.5;
+    for (let sx = 0; sx < 3; sx++) {
       const tile = this.add.image(
-        tx * tileSize + tileSize / 2,
+        schoolCenterX + sx * tileSize + tileSize / 2,
         laneY[9],
         'tile_school'
       );
@@ -211,12 +215,12 @@ class GameScene extends Phaser.Scene {
     this.buses = this.physics.add.group();
     this.trucks = this.physics.add.group();
 
-    const speedMultiplier = 1 + (this.level - 1) * 0.15;
-    const densityMultiplier = Math.min(1 + (this.level - 1) * 0.2, 2);
+    const speedMultiplier = 1 + (this.level - 1) * 0.10;
+    const densityMultiplier = Math.min(1 + (this.level - 1) * 0.2, 1.5);
 
     this.laneDirections.forEach((laneInfo, idx) => {
       const { lane, dir } = laneInfo;
-      const baseSpeed = 80 + idx * 25;
+      const baseSpeed = 50 + idx * 15;
       const speed = baseSpeed * speedMultiplier;
 
       let vehicleType;
