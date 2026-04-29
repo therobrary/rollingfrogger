@@ -437,27 +437,18 @@ const ScoreManager = {
     const bay = GoalManager.checkGoalReached(scene);
     if (!bay) return;
 
-    const filled = GoalManager.fillBay(scene, bay.index);
-    if (!filled) return;
+    // Fill the bay for visual feedback
+    GoalManager.fillBay(scene, bay.index);
+    scene.score += GameConfig.scoreBayFill;
 
+    // Trigger level completion immediately on reaching any goal bay
     scene.gameActive = false;
     scene.physics.pause();
-
-    const filledCount = GoalManager.getFilledCount(scene);
-    scene.hopsCompleted = filledCount;
     this.updateHUD(scene);
 
-    if (GoalManager.allBaysFilled(scene)) {
-      scene.time.delayedCall(500, () => {
-        scene.levelComplete();
-      });
-    } else {
-      scene.time.delayedCall(500, () => {
-        scene.gameActive = true;
-        scene.physics.resume();
-        this.updateHUD(scene);
-      });
-    }
+    scene.time.delayedCall(500, () => {
+      scene.levelComplete();
+    });
   },
 
   onGameOver(scene) {
