@@ -104,6 +104,11 @@ const SaveSystem = {
     try {
       localStorage.removeItem(this.VERSION_KEY);
       localStorage.removeItem('rollingfrogger_highscore');
+      ['classic', 'endless', 'bonus'].forEach(m => {
+        localStorage.removeItem(`rollingfrogger_highscore_${m}`);
+        localStorage.removeItem(`rollingfrogger_beststats_${m}`);
+      });
+      localStorage.removeItem('rollingfrogger_mode');
     } catch (e) {}
   },
 };

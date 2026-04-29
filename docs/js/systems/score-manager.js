@@ -7,6 +7,8 @@ const ScoreManager = {
     const charName = equippedChar ? equippedChar.name : null;
     if (scene.isEndless && scene.isEndless()) {
       scene.hudRenderer.updateEndless(scene.score, scene.lives, scene.distance, scene.combo, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive);
+    } else if (scene.isBonus && scene.isBonus()) {
+      scene.hudRenderer.updateBonus(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive, charName, scene._bonusModeId, scene._timeTrialRemaining);
     } else {
       scene.hudRenderer.update(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive, charName);
     }
@@ -14,7 +16,10 @@ const ScoreManager = {
 
   initHighScore(scene) {
     try {
-      scene.highScore = parseInt(localStorage.getItem('rollingfrogger_highscore'), 10) || 0;
+      const key = scene._bonusModeId
+        ? `rollingfrogger_bonus_highscore_${scene._bonusModeId}`
+        : ModeManager.getHighScoreKey(scene._mode);
+      scene.highScore = parseInt(localStorage.getItem(key), 10) || 0;
     } catch(e) {
       scene.highScore = 0;
     }
@@ -92,6 +97,44 @@ const ScoreManager = {
       return;
     }
 
+    // Bonus mode level complete
+    if (scene.isBonus && scene.isBonus()) {
+      scene.score += Math.floor(GameConfig.scoreLevelComplete * scene._bonusScoreMultiplier);
+      scene.hopsCompleted = 0;
+      scene.level++;
+      ChallengeManager.checkChallengeProgress('levels', 1);
+
+      // Save stats for no-miss mode
+      if (scene._bonusStrictNearMisses) {
+        scene._nearMissEntities = [];
+      }
+
+      const flash = scene.add.rectangle(
+        scene.gameWidth / 2,
+        scene.gameHeight / 2,
+        scene.gameWidth,
+        scene.gameHeight,
+        0x44ff88,
+        0.5
+      ).setDepth(200);
+
+      scene.tweens.add({
+        targets: flash,
+        alpha: 0,
+        duration: GameConfig.levelCompleteFlashMs,
+        onComplete: () => {
+          flash.destroy();
+          scene.rebuildLevel();
+          scene.showCountdown(`LEVEL ${scene.level}`, () => {
+            scene.gameActive = true;
+            scene.physics.resume();
+            this.updateHUD(scene);
+          });
+        }
+      });
+      return;
+    }
+
     scene.gameActive = false;
     scene.physics.pause();
     scene.score += GameConfig.scoreLevelComplete;
@@ -128,6 +171,11 @@ const ScoreManager = {
   },
 
   onDrown(scene) {
+    // Zen mode: no death
+    if (scene._bonusNoDeath) {
+      return;
+    }
+
     if (scene._perfectMode) scene._perfectMode = false;
     scene.lives--;
     scene.score = Math.max(0, scene.score - GameConfig.scorePenalty);
@@ -155,14 +203,10 @@ const ScoreManager = {
     });
 
     if (scene.lives <= 0) {
-      try {
-        if (scene.score > scene.highScore) {
-          scene.highScore = scene.score;
-          localStorage.setItem('rollingfrogger_highscore', scene.highScore);
-        }
-      } catch(e) {}
-      scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
-        scene.scene.start('GameOverScene', { won: false, score: scene.score, level: scene.level });
+      ScoreManager.onGameOver(scene);
+      this._saveHighScore(scene);
+scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
+        scene.scene.start('GameOverScene', { won: false, score: scene.score, level: scene.level, bonusMode: scene._bonusModeId });
       });
     } else {
       scene.hopsCompleted = 0;
@@ -173,6 +217,17 @@ const ScoreManager = {
 
   onHitByVehicle(scene) {
     if (scene.gameActive === false) return;
+
+    // Zen mode: no death, just flash and continue
+    if (scene._bonusNoDeath) {
+      scene.player.setAlpha(0.3);
+      scene.cameras.main.shake(100, 0.01);
+      scene.time.delayedCall(300, () => {
+        scene.player.setAlpha(1);
+      });
+      return;
+    }
+
     scene.gameActive = false;
 
     if (scene._perfectMode) scene._perfectMode = false;
@@ -214,20 +269,29 @@ const ScoreManager = {
       scene.physics.resume();
 
       if (scene.lives <= 0) {
-        try {
-          if (scene.score > scene.highScore) {
-            scene.highScore = scene.score;
-            localStorage.setItem('rollingfrogger_highscore', scene.highScore);
-          }
-        } catch(e) {}
+        ScoreManager.onGameOver(scene);
+        this._saveHighScore(scene);
         scene.time.delayedCall(GameConfig.deathTransitionMs, () => {
-          scene.scene.start('GameOverScene', { won: false, score: scene.score, level: scene.level });
+          scene.scene.start('GameOverScene', { won: false, score: scene.score, level: scene.level, bonusMode: scene._bonusModeId });
         });
       } else {
         scene.gameActive = true;
         this.updateHUD(scene);
       }
     });
+  },
+
+  _saveHighScore(scene) {
+    try {
+      if (scene.score > scene.highScore) {
+        scene.highScore = scene.score;
+        if (scene._bonusModeId) {
+          BonusManager.saveBonusHighScore(scene._bonusModeId, scene.score, `Level ${scene.level} | Score: ${scene.score}`);
+        } else {
+          ModeManager.saveHighScore(scene._mode, scene.highScore, `Score: ${scene.score}`);
+        }
+      }
+    } catch(e) {}
   },
 
   onReachGoal(scene) {
@@ -256,6 +320,20 @@ const ScoreManager = {
         scene.physics.resume();
         this.updateHUD(scene);
       });
+    }
+  },
+
+  onGameOver(scene) {
+    if (!BonusManager.getBonusMode()) return;
+    // Save final high score for any mode
+    const stats = scene._bonusModeId
+      ? `${BonusManager.getBonusMode().name} | Level ${scene.level} | Score: ${scene.score}`
+      : `Score: ${scene.score}`;
+
+    if (scene._bonusModeId) {
+      BonusManager.saveBonusHighScore(scene._bonusModeId, scene.score, stats);
+    } else {
+      ModeManager.saveHighScore(scene._mode, scene.score, stats);
     }
   }
 };

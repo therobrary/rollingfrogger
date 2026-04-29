@@ -35,4 +35,11 @@ const GameConfig = {
   endlessDifficultyScale: 100,
   endlessMaxDifficulty: 3,
   endlessScrollSpeed: 0.05,
+
+  // Bonus mode configuration
+  timeTrialDuration: 60,
+  speedRunMultiplier: 2,
+  speedRunScoreMultiplier: 3,
+  zenModeNoDeath: true,
+  noMissStrictMode: true,
 };

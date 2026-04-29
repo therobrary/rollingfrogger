@@ -7,9 +7,14 @@ class GameOverScene extends Phaser.Scene {
     this.won = data.won || false;
     this.score = data.score || 0;
     this.level = data.level || 1;
+    this.bonusMode = data.bonusMode || null;
+    this.noMissFail = data.noMissFail || false;
     AchievementManager.saveAchievements();
     try {
-      this.highScore = parseInt(localStorage.getItem('rollingfrogger_highscore'), 10) || 0;
+      const modeKey = this.bonusMode
+        ? `rollingfrogger_bonus_highscore_${this.bonusMode}`
+        : ModeManager.getHighScoreKey(ModeManager.getMode());
+      this.highScore = parseInt(localStorage.getItem(modeKey), 10) || 0;
     } catch(e) {
       this.highScore = 0;
     }
@@ -52,6 +57,23 @@ class GameOverScene extends Phaser.Scene {
       strokeThickness: 4
     }).setOrigin(0.5);
 
+    // Bonus mode label
+    if (this.bonusMode) {
+      const bonusNames = {
+        time_trial: 'TIME TRIAL',
+        no_miss: 'NO MISS',
+        speed_run: 'SPEED RUN',
+        zen_mode: 'ZEN MODE'
+      };
+      this.add.text(centerX, centerY - 50, bonusNames[this.bonusMode] || 'BONUS MODE', {
+        fontSize: '16px',
+        fontFamily: 'Arial Black, Arial, sans-serif',
+        color: '#aa44ff',
+        stroke: '#000000',
+        strokeThickness: 3
+      }).setOrigin(0.5);
+    }
+
     // Level reached
     this.add.text(centerX, centerY + 50, `Reached Level ${this.level}`, {
       fontSize: '16px',
@@ -83,6 +105,15 @@ class GameOverScene extends Phaser.Scene {
         fontSize: '16px',
         fontFamily: 'Arial, sans-serif',
         color: '#44ff88',
+        stroke: '#000000',
+        strokeThickness: 3
+      }).setOrigin(0.5);
+    } else if (this.noMissFail) {
+      const subtitleY = centerY + (isNewHigh ? 115 : 85);
+      this.add.text(centerX, subtitleY, 'Near miss detected! Try again without any.', {
+        fontSize: '16px',
+        fontFamily: 'Arial, sans-serif',
+        color: '#ff6666',
         stroke: '#000000',
         strokeThickness: 3
       }).setOrigin(0.5);
@@ -123,7 +154,11 @@ class GameOverScene extends Phaser.Scene {
       restartBtn.setTexture('btn_play');
     });
     restartBtn.on('pointerdown', () => {
-      this.scene.start('GameScene');
+      if (this.bonusMode) {
+        this.scene.start('GameScene', { mode: 'bonus', bonusModeId: this.bonusMode });
+      } else {
+        this.scene.start('GameScene');
+      }
     });
 
     // Menu button

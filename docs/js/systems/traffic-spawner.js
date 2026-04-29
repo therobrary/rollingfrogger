@@ -8,8 +8,8 @@ const TrafficSpawner = {
     scene.trucks = scene.physics.add.group();
   },
 
-  createTraffic(scene, laneDirections) {
-    const speedMultiplier = 1 + (scene.level - 1) * VEHICLE_DATA.speedMultiplierPerLevel;
+  createTraffic(scene, laneDirections, bonusSpeedMultiplier) {
+    const speedMultiplier = (1 + (scene.level - 1) * VEHICLE_DATA.speedMultiplierPerLevel) * (bonusSpeedMultiplier || 1);
     const densityMultiplier = Math.min(1 + (scene.level - 1) * VEHICLE_DATA.densityMultiplierPerLevel, VEHICLE_DATA.maxDensityMultiplier);
     const baseSpeed = scene.gameWidth / VEHICLE_DATA.baseSpeedDivisor;
 

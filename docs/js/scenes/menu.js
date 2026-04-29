@@ -82,6 +82,24 @@ class MenuScene extends Phaser.Scene {
     ModeManager.init();
     this._selectedMode = ModeManager.getMode();
 
+    // Mode select button (opens full mode selection screen)
+    const modeSelectBtnX = width / 2 - 60;
+    const modeSelectBtnY = height * 0.645;
+    const modeSelectBtn = this.add.rectangle(modeSelectBtnX + 60, modeSelectBtnY, 120, 30, 0x442266)
+      .setInteractive({ useHandCursor: true });
+    const modeSelectText = this.add.text(modeSelectBtnX + 60, modeSelectBtnY, 'ALL MODES', {
+      fontSize: '13px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#aa44ff',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5);
+    modeSelectBtn.on('pointerover', () => modeSelectBtn.setFillStyle(0x663388));
+    modeSelectBtn.on('pointerout', () => modeSelectBtn.setFillStyle(0x442266));
+    modeSelectBtn.on('pointerdown', () => {
+      this.scene.start('ModeSelectScene');
+    });
+
     // Initialize character roster
     CharacterRoster.init();
 
@@ -255,6 +273,12 @@ class MenuScene extends Phaser.Scene {
 
     // Update description
     this._modeDescription.setText(ModeManager.getModeDescription(mode));
+  }
+
+  _selectBonusMode() {
+    ModeManager.setMode('bonus');
+    this._selectedMode = 'bonus';
+    this._modeDescription.setText('Time Trial, No Miss, Speed Run, and Zen Mode challenges.');
   }
 
   _openSettings() {

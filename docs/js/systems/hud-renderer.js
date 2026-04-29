@@ -79,6 +79,48 @@ class HUDRenderer {
       strokeThickness: 2
     }).setOrigin(0.5, 0).setDepth(101).setVisible(false);
 
+    // Bonus mode HUD elements (hidden by default)
+    this.bonusModeText = scene.add.text(gameWidth / 2, 8, '', {
+      fontSize: '14px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#aa44ff',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5, 0).setDepth(101).setVisible(false);
+
+    this.timeTrialText = scene.add.text(gameWidth - 12, 8, '', {
+      fontSize: '14px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#ff4444',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(1, 0).setDepth(101).setVisible(false);
+
+    this.bonusMultiplierText = scene.add.text(gameWidth / 2, 28, '', {
+      fontSize: '11px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#cc66ff',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(0.5, 0).setDepth(101).setVisible(false);
+
+    this.nearMissText = scene.add.text(12, 28, '', {
+      fontSize: '11px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#ff4444',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setDepth(101).setVisible(false);
+
+    // Zen mode indicator
+    this.zenIndicator = scene.add.text(gameWidth / 2, 8, '', {
+      fontSize: '14px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: '#44aaff',
+      stroke: '#000000',
+      strokeThickness: 3
+    }).setOrigin(0.5, 0).setDepth(101).setVisible(false);
+
     // Location label at bottom
     scene.add.text(gameWidth / 2, gameHeight - 10, 'Rolling Rd x Grigsby Dr', {
       fontSize: '11px',
@@ -104,6 +146,13 @@ class HUDRenderer {
     this.distanceText.setVisible(false);
     this.comboText.setVisible(false);
     this.comboMultiplierText.setVisible(false);
+
+    // Hide bonus mode elements
+    this.bonusModeText.setVisible(false);
+    this.timeTrialText.setVisible(false);
+    this.bonusMultiplierText.setVisible(false);
+    this.nearMissText.setVisible(false);
+    this.zenIndicator.setVisible(false);
   }
 
   updateEndless(score, lives, distance, combo, highScore, currency, shieldActive, magnetActive) {
@@ -121,6 +170,13 @@ class HUDRenderer {
     this.currencyText.setVisible(false);
     this.statusText.setVisible(false);
 
+    // Hide bonus mode elements
+    this.bonusModeText.setVisible(false);
+    this.timeTrialText.setVisible(false);
+    this.bonusMultiplierText.setVisible(false);
+    this.nearMissText.setVisible(false);
+    this.zenIndicator.setVisible(false);
+
     // Update endless mode HUD
     this.distanceText.setText(`Distance: ${distance}`);
     this.comboText.setText(combo > 0 ? `COMBO x${combo}` : '');
@@ -130,6 +186,72 @@ class HUDRenderer {
       this.comboMultiplierText.setText(`x${multiplier.toFixed(1)} near-miss bonus`);
     } else {
       this.comboMultiplierText.setText('');
+    }
+  }
+
+  updateBonus(score, lives, level, hopsCompleted, highScore, currency, shieldActive, magnetActive, equippedCharName, bonusModeId, timeTrialRemaining) {
+    this.scoreText.setText(`Score: ${score}`);
+    this.livesText.setText(lives >= 999 ? 'Zen' : 'Lives: ' + '\u2665'.repeat(Math.max(0, lives)));
+
+    // Show bonus mode elements
+    this.bonusModeText.setVisible(true);
+    this.levelText.setVisible(true);
+    this.highScoreText.setVisible(false);
+    this.currencyText.setVisible(false);
+
+    // Hide endless mode elements
+    this.distanceText.setVisible(false);
+    this.comboText.setVisible(false);
+    this.comboMultiplierText.setVisible(false);
+
+    // Hide classic status text
+    this.statusText.setVisible(false);
+
+    // Set bonus mode label
+    const modeNames = {
+      time_trial: 'TIME TRIAL',
+      no_miss: 'NO MISS',
+      speed_run: 'SPEED RUN',
+      zen_mode: 'ZEN MODE'
+    };
+    this.bonusModeText.setText(modeNames[bonusModeId] || 'BONUS');
+
+    // Time Trial: show countdown timer
+    if (timeTrialRemaining > 0) {
+      this.timeTrialText.setVisible(true);
+      this.timeTrialText.setText(`Time: ${timeTrialRemaining}s`);
+    } else {
+      this.timeTrialText.setVisible(false);
+    }
+
+    // Speed Run: show score multiplier
+    if (bonusModeId === 'speed_run') {
+      this.bonusMultiplierText.setVisible(true);
+      this.bonusMultiplierText.setText(`${GameConfig.speedRunScoreMultiplier}x SCORE`);
+    } else {
+      this.bonusMultiplierText.setVisible(false);
+    }
+
+    // No Miss: show near miss counter
+    if (bonusModeId === 'no_miss') {
+      this.nearMissText.setVisible(true);
+      this.nearMissText.setText('Near Misses: 0');
+    } else {
+      this.nearMissText.setVisible(false);
+    }
+
+    // Zen Mode: show indicator
+    if (bonusModeId === 'zen_mode') {
+      this.zenIndicator.setVisible(true);
+      this.zenIndicator.setText('\u2728 ZEN \u2728');
+    } else {
+      this.zenIndicator.setVisible(false);
+    }
+  }
+
+  updateNearMissCount(count) {
+    if (this.nearMissText.visible) {
+      this.nearMissText.setText(`Near Misses: ${count}`);
     }
   }
 }

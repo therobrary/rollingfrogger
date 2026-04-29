@@ -29,6 +29,13 @@ class GameScene extends Phaser.Scene {
     this._lastPlayerX = 0;
     this._lastPlayerY = 0;
     this._nearMissEntities = [];
+    // Bonus mode state
+    this._bonusModeId = null;
+    this._bonusSpeedMultiplier = 1;
+    this._bonusScoreMultiplier = 1;
+    this._bonusNoDeath = false;
+    this._bonusStrictNearMisses = false;
+    this._timeTrialRemaining = 0;
   }
 
   init(data) {
@@ -68,6 +75,14 @@ class GameScene extends Phaser.Scene {
     this._livesAtStart = GameConfig.initialLives;
     this._currencyAtStart = 0;
     this._perfectMode = true;
+    // Bonus mode state
+    this._bonusModeId = data && data.bonusModeId ? data.bonusModeId : null;
+    this._bonusSpeedMultiplier = 1;
+    this._bonusScoreMultiplier = 1;
+    this._bonusNoDeath = false;
+    this._bonusStrictNearMisses = false;
+    this._timeTrialRemaining = 0;
+
     ScoreManager.initHighScore(this);
     AchievementManager.init();
     ChallengeManager.init();
@@ -75,6 +90,14 @@ class GameScene extends Phaser.Scene {
 
   isEndless() {
     return this._mode === 'endless';
+  }
+
+  isBonus() {
+    return this._mode === 'bonus';
+  }
+
+  getBonusModeId() {
+    return this._bonusModeId;
   }
 
   create() {
@@ -102,6 +125,8 @@ class GameScene extends Phaser.Scene {
 
     if (this.isEndless()) {
       this._setupEndlessMode();
+    } else if (this.isBonus()) {
+      this._setupBonusMode();
     } else {
       this._setupClassicMode();
     }
@@ -115,6 +140,20 @@ class GameScene extends Phaser.Scene {
       CollisionManager.setupGoalOverlap(this);
     }
 
+    // Apply bonus mode settings
+    if (this.isBonus() && this._bonusModeId) {
+      const bonusConfig = BonusManager.startBonusMode(this._bonusModeId);
+      if (bonusConfig) {
+        this._bonusSpeedMultiplier = bonusConfig.speedMultiplier;
+        this._bonusScoreMultiplier = bonusConfig.scoreMultiplier;
+        this._bonusNoDeath = bonusConfig.noDeath;
+        this._bonusStrictNearMisses = bonusConfig.strictNearMisses;
+        if (bonusConfig.timeTrialDuration > 0) {
+          this._timeTrialRemaining = bonusConfig.timeTrialDuration;
+        }
+      }
+    }
+
     this.hudRenderer.update(this.score, this.lives, this.level, this.hopsCompleted, this.highScore, this.currency, this.shieldActive, this.magnetActive);
     this.physics.pause();
     this.showCountdown('READY?', () => {
@@ -122,6 +161,7 @@ class GameScene extends Phaser.Scene {
       this.physics.resume();
     });
     this._lastEndlessTimeCheck = this.time.now;
+    this._lastBonusTimeCheck = this.time.now;
   }
 
   _setupClassicMode() {
@@ -162,6 +202,26 @@ class GameScene extends Phaser.Scene {
     PickupManager.createPickupGroup(this);
   }
 
+  _setupBonusMode() {
+    // Bonus mode uses classic-style level completion but with modifiers
+    const { laneDirections, laneY } = this.laneRenderer.drawPlayfield(this, this.gameWidth, this.tileSize);
+    this.laneDirections = laneDirections;
+    this.laneRenderer.drawTrafficArrows(this, laneDirections, laneY);
+    RiverManager.createRiverGroups(this);
+    RiverManager.spawnRiverEntities(this);
+    this.createPlayer();
+
+    // Apply speed multiplier to traffic
+    TrafficSpawner.createTraffic(this, laneDirections, this._bonusSpeedMultiplier);
+    PickupManager.createPickupGroup(this);
+    PickupManager.spawnPickups(this);
+
+    // Zen mode: no death, infinite lives
+    if (this._bonusNoDeath) {
+      this.lives = 999;
+    }
+  }
+
   createPlayer() {
     const spriteKey = CharacterRoster.getEquippedSpriteKey();
     this.player = this.physics.add.image(
@@ -191,6 +251,14 @@ class GameScene extends Phaser.Scene {
       this._updateComboTimer(time, delta);
       this._trackEndlessTime(time, delta);
     }
+
+    // Bonus mode: timer and special rules
+    if (this.isBonus() && this.gameActive) {
+      this._updateBonusMode(time, delta);
+      if (this._bonusStrictNearMisses) {
+        this._updateNearMissDetection(time);
+      }
+    }
   }
 
   onPlayerMoved(dx, dy) {
@@ -208,6 +276,8 @@ class GameScene extends Phaser.Scene {
 
     if (this.isEndless()) {
       this._onEndlessMove(dx, dy);
+    } else if (this.isBonus()) {
+      this._onBonusMove(dx, dy);
     } else {
       ScoreManager.onPlayerMoved(this, dx, dy);
     }
@@ -228,6 +298,17 @@ class GameScene extends Phaser.Scene {
       if (playerLane >= sectionEnd - 1) {
         ScrollManager.onCheckpointReached(this);
       }
+    }
+
+    ScoreManager.onPlayerMoved(this, dx, dy);
+  }
+
+  _onBonusMove(dx, dy) {
+    // Apply bonus score multiplier
+    if (dy === -1) {
+      const basePoints = GameConfig.scorePerHop;
+      const multipliedPoints = Math.floor(basePoints * this._bonusScoreMultiplier);
+      this.score += multipliedPoints;
     }
 
     ScoreManager.onPlayerMoved(this, dx, dy);
@@ -340,6 +421,52 @@ class GameScene extends Phaser.Scene {
     }
   }
 
+  _updateBonusMode(time, delta) {
+    // Time Trial: countdown timer
+    if (this._bonusModeId === 'time_trial' && this._timeTrialRemaining > 0) {
+      const elapsed = (time - (this._lastBonusTimeCheck || time)) / 1000;
+      if (elapsed >= 1) {
+        this._timeTrialRemaining = Math.max(0, this._timeTrialRemaining - Math.floor(elapsed));
+        this._lastBonusTimeCheck = time;
+
+        if (this._timeTrialRemaining <= 0) {
+          this._onTimeTrialExpired();
+        }
+      }
+    }
+  }
+
+  _onTimeTrialExpired() {
+    // Time Trial ended - check if player completed enough levels
+    const stats = `Level ${this.level} | Score: ${this.score}`;
+    ModeManager.saveHighScore('bonus', this.score, stats);
+
+    // Award bonus high score
+    if (this._bonusModeId) {
+      BonusManager.saveBonusHighScore(this._bonusModeId, this.score, stats);
+    }
+
+    this.gameActive = false;
+    this.physics.pause();
+
+    const { width, height } = this.scale;
+    const resultText = this.level >= 3 ? 'TIME UP - GOOD RUN!' : 'TIME UP - TRY AGAIN!';
+    const resultColor = this.level >= 3 ? '#44ff88' : '#ffaa44';
+
+    this.add.text(width / 2, height / 2 - 20, resultText, {
+      fontSize: '36px',
+      fontFamily: 'Arial Black, Arial, sans-serif',
+      color: resultColor,
+      stroke: '#000000',
+      strokeThickness: 5
+    }).setOrigin(0.5).setDepth(200);
+
+    ScoreManager.onGameOver(this);
+    this.time.delayedCall(2000, () => {
+      this.scene.start('GameOverScene', { won: false, score: this.score, level: this.level, bonusMode: this._bonusModeId });
+    });
+  }
+
   _registerNearMiss(time) {
     this.combo++;
     if (this.combo > GameConfig.endlessMaxCombo) {
@@ -389,6 +516,17 @@ class GameScene extends Phaser.Scene {
       this.drowning = false;
       return;
     }
+
+    // Bonus mode: track no-miss failure
+    if (this.isBonus() && this._bonusStrictNearMisses && this._nearMissEntities.length > 0) {
+      const stats = `Near misses: ${this._nearMissEntities.length} | Score: ${this.score}`;
+      BonusManager.saveBonusHighScore(this._bonusModeId, this.score, stats);
+      this.time.delayedCall(1000, () => {
+        this.scene.start('GameOverScene', { won: false, score: this.score, level: this.level, bonusMode: this._bonusModeId, noMissFail: true });
+      });
+      return;
+    }
+
     // Classic-mode rebuild (inlined to avoid super.rebuildLevel crash)
     TrafficSpawner.clearTraffic(this);
     if (typeof RiverManager !== 'undefined') RiverManager.clearRiverEntities(this);
@@ -398,12 +536,17 @@ class GameScene extends Phaser.Scene {
     this.player.setAlpha(1);
     this.player.setVelocity(0, 0);
     this.drowning = false;
-    TrafficSpawner.createTraffic(this, this.laneDirections);
+    TrafficSpawner.createTraffic(this, this.laneDirections, this._bonusSpeedMultiplier);
     if (typeof RiverManager !== 'undefined') {
       RiverManager.createRiverGroups(this);
       RiverManager.spawnRiverEntities(this);
     }
     if (typeof GoalManager !== 'undefined') GoalManager.createGoalBays(this);
     if (typeof PickupManager !== 'undefined') PickupManager.spawnPickups(this);
+
+    // Reset near miss tracking for no-miss mode
+    if (this.isBonus() && this._bonusStrictNearMisses) {
+      this._nearMissEntities = [];
+    }
   }
 }
