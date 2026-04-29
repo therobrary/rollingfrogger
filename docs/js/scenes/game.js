@@ -220,7 +220,9 @@ class GameScene extends Phaser.Scene {
 
     this.laneDirections.forEach((laneInfo, idx) => {
       const { lane, dir } = laneInfo;
-      const baseSpeed = 40 + idx * 12;
+      // Target: vehicles take ~3s to cross the 640px screen at level 1
+      // speed is applied as `speed * delta / 1000` → px/s
+      const baseSpeed = this.gameWidth / 3; // ~213 px/s — same for all lanes at level 1
       let vehicleType;
       if (lane < 3) {
         vehicleType = lane === 0 ? 'vehicle_bus' : (lane === 1 ? 'vehicle_car' : 'vehicle_truck');
@@ -362,7 +364,7 @@ class GameScene extends Phaser.Scene {
       group.getChildren().forEach(vehicle => {
         if (!vehicle.active) return;
         const speed = vehicle.getData('speed');
-        vehicle.x += speed * dt * 60; // normalize to ~60fps
+        vehicle.x += speed * dt;
         // Wrap around screen edges
         if (speed > 0 && vehicle.x > right) {
           vehicle.x = left;
