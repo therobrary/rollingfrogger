@@ -19,6 +19,7 @@ const CollisionManager = {
   },
 
   hitByVehicleHandler(scene) {
+    if (PickupManager.checkShieldHit(scene)) return;
     ScoreManager.onHitByVehicle(scene);
   },
 

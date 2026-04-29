@@ -107,6 +107,13 @@ class BootScene extends Phaser.Scene {
       g.generateTexture('star', 8, 8);
       g.destroy();
     }
+
+    // Pickup textures
+    this.makePickupFallback('pickup_coin', 0xffcc00, 'coin');
+    this.makePickupFallback('pickup_star', 0xffdd44, 'star');
+    this.makePickupFallback('pickup_shield', 0x44aaff, 'shield');
+    this.makePickupFallback('pickup_magnet', 0xff4444, 'magnet');
+    this.makePickupFallback('pickup_key', 0xcc88ff, 'key');
   }
 
   makeVehicleFallback(key, color, w, h) {
@@ -202,5 +209,69 @@ class BootScene extends Phaser.Scene {
     g.fillCircle(46, 24, 3);
     g.generateTexture('turtle', 56, 48);
     g.destroy();
+  }
+
+  makePickupFallback(key, color, shape) {
+    if (this.textures.exists(key)) return;
+    const g = this.make.graphics({ x: 0, y: 0, add: false });
+    g.fillStyle(color, 1);
+    g.lineStyle(1, 0xffffff, 0.5);
+
+    switch (shape) {
+      case 'coin':
+        g.fillCircle(10, 10, 8);
+        g.strokeCircle(10, 10, 8);
+        g.fillStyle(0xffffff, 0.6);
+        g.fillCircle(8, 8, 2);
+        break;
+      case 'star':
+        this.fillStar(g, 10, 10, 5, 9, 4);
+        g.strokeCircle(10, 10, 10);
+        break;
+      case 'shield':
+        g.fillCircle(10, 10, 9);
+        g.strokeCircle(10, 10, 9);
+        g.fillStyle(0xffffff, 0.4);
+        g.fillCircle(10, 10, 5);
+        g.strokeCircle(10, 10, 5);
+        break;
+      case 'magnet':
+        g.fillRect(4, 2, 12, 16);
+        g.strokeRect(4, 2, 12, 16);
+        g.fillStyle(0xffffff, 0.3);
+        g.fillRect(6, 4, 3, 4);
+        g.fillRect(11, 4, 3, 4);
+        break;
+      case 'key':
+        g.fillCircle(8, 8, 5);
+        g.strokeCircle(8, 8, 5);
+        g.fillRect(8, 8, 8, 3);
+        g.fillRect(14, 10, 2, 5);
+        g.fillStyle(0xffffff, 0.5);
+        g.fillCircle(8, 8, 2);
+        break;
+    }
+
+    g.generateTexture(key, 20, 20);
+    g.destroy();
+  }
+
+  fillStar(g, cx, cy, spikes, outerRadius, innerRadius) {
+    let rot = (Math.PI / 2) * 3;
+    const step = Math.PI / spikes;
+    g.beginPath();
+    g.moveTo(cx + Math.cos(rot) * outerRadius, cy + Math.sin(rot) * outerRadius);
+    for (let i = 0; i < spikes; i++) {
+      let x = cx + Math.cos(rot) * outerRadius;
+      let y = cy + Math.sin(rot) * outerRadius;
+      g.lineTo(x, y);
+      rot += step;
+      x = cx + Math.cos(rot) * innerRadius;
+      y = cy + Math.sin(rot) * innerRadius;
+      g.lineTo(x, y);
+      rot += step;
+    }
+    g.closePath();
+    g.fillPath();
   }
 }

@@ -3,7 +3,7 @@
 const ScoreManager = {
 
   updateHUD(scene) {
-    scene.hudRenderer.update(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore);
+    scene.hudRenderer.update(scene.score, scene.lives, scene.level, scene.hopsCompleted, scene.highScore, scene.currency, scene.shieldActive, scene.magnetActive);
   },
 
   initHighScore(scene) {
@@ -80,6 +80,11 @@ const ScoreManager = {
   onDrown(scene) {
     scene.lives--;
     scene.score = Math.max(0, scene.score - GameConfig.scorePenalty);
+    scene.shieldActive = false;
+    scene.magnetActive = false;
+    scene.player.clearTint();
+    if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
+    if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
 
     scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
     const flash = scene.add.rectangle(
@@ -120,6 +125,11 @@ const ScoreManager = {
 
     scene.lives--;
     scene.score = Math.max(0, scene.score - GameConfig.scorePenalty);
+    scene.shieldActive = false;
+    scene.magnetActive = false;
+    scene.player.clearTint();
+    if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
+    if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
 
     scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
     const flash = scene.add.rectangle(

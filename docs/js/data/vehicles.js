@@ -53,3 +53,26 @@ const VEHICLE_DATA = {
   // Screen wrap margin for vehicles (pixels beyond edge before wrapping)
   vehicleWrapMargin: 80,
 };
+
+// Pickup/Bonus Economy Data
+const PICKUP_DATA = {
+  // Pickup type definitions: key, points awarded, currency value, spawn weight, sprite key
+  // Spawn weights sum to 100: coin=50, star=25, shield=12, magnet=8, key=5
+  types: [
+    { key: 'coin',      points: 0,    currencyValue: 1,  spawnWeight: 50, spriteKey: 'pickup_coin' },
+    { key: 'star',      points: 50,   currencyValue: 0,  spawnWeight: 25, spriteKey: 'pickup_star' },
+    { key: 'shield',    points: 0,    currencyValue: 0,  spawnWeight: 12, spriteKey: 'pickup_shield' },
+    { key: 'magnet',    points: 0,    currencyValue: 0,  spawnWeight: 8,  spriteKey: 'pickup_magnet' },
+    { key: 'key',       points: 100,  currencyValue: 5,  spawnWeight: 5,  spriteKey: 'pickup_key' },
+  ],
+  typeCount: 5,
+
+  // Magnet effect duration in milliseconds
+  magnetDurationMs: 5000,
+
+  // Pickup collection radius (pixels)
+  collectionRadius: 28,
+
+  // Max pickups on screen at once
+  maxPickupsOnScreen: 20,
+};

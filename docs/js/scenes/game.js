@@ -12,6 +12,9 @@ class GameScene extends Phaser.Scene {
     this.drowning = false;
     this.laneRenderer = new LaneRenderer();
     this.hudRenderer = new HUDRenderer();
+    this.currency = 0;
+    this.shieldActive = false;
+    this.magnetActive = false;
   }
 
   init(data) {
@@ -31,6 +34,9 @@ class GameScene extends Phaser.Scene {
     this.gameActive = false;
     this.playerMoving = false;
     this.lastMoveTime = 0;
+    this.currency = 0;
+    this.shieldActive = false;
+    this.magnetActive = false;
     ScoreManager.initHighScore(this);
   }
 
@@ -54,13 +60,15 @@ class GameScene extends Phaser.Scene {
     RiverManager.spawnRiverEntities(this);
     this.createPlayer();
     TrafficSpawner.createTraffic(this, laneDirections);
+    PickupManager.createPickupGroup(this);
+    PickupManager.spawnPickups(this);
     this.hudRenderer.create(this, this.gameWidth, this.gameHeight);
     PlayerController.setupInput(this);
     CollisionManager.setupCollisions(this);
     GoalManager.createGoalBays(this);
     CollisionManager.setupGoalOverlap(this);
 
-    this.hudRenderer.update(this.score, this.lives, this.level, this.hopsCompleted, this.highScore);
+    this.hudRenderer.update(this.score, this.lives, this.level, this.hopsCompleted, this.highScore, this.currency, this.shieldActive, this.magnetActive);
     this.physics.pause();
     this.showCountdown('READY?', () => {
       this.gameActive = true;
@@ -85,6 +93,9 @@ class GameScene extends Phaser.Scene {
     RiverManager.updateRiverEntities(this, delta / 1000);
     RiverManager.movePlayerWithEntity(this, delta / 1000);
     PlayerController.handlePlayerMove(this, time);
+    PickupManager.checkPickupCollection(this);
+    PickupManager.updateIndicators(this);
+    PickupManager.attractPickupsToPlayer(this);
   }
 
   onPlayerMoved(dx, dy) {
@@ -107,6 +118,7 @@ class GameScene extends Phaser.Scene {
     TrafficSpawner.clearTraffic(this);
     RiverManager.clearRiverEntities(this);
     GoalManager.clearGoalBays(this);
+    PickupManager.clearPickups(this);
 
     this.player.setPosition(GameConfig.gameWidthHalf, this.startRowY);
     this.player.setAlpha(1);
@@ -115,6 +127,7 @@ class GameScene extends Phaser.Scene {
     TrafficSpawner.createTraffic(this, this.laneDirections);
     RiverManager.spawnRiverEntities(this);
     GoalManager.createGoalBays(this);
+    PickupManager.spawnPickups(this);
   }
 
   showCountdown(text, callback) {

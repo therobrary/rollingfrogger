@@ -38,6 +38,22 @@ class HUDRenderer {
       strokeThickness: 2
     }).setOrigin(0.5, 0).setDepth(101);
 
+    this.currencyText = scene.add.text(12, 28, '', {
+      fontSize: '11px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#ffaa00',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setDepth(101);
+
+    this.statusText = scene.add.text(gameWidth - 12, 28, '', {
+      fontSize: '11px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#44aaff',
+      stroke: '#000000',
+      strokeThickness: 2
+    }).setOrigin(1, 0).setDepth(101);
+
     // Location label at bottom
     scene.add.text(gameWidth / 2, gameHeight - 10, 'Rolling Rd x Grigsby Dr', {
       fontSize: '11px',
@@ -46,10 +62,16 @@ class HUDRenderer {
     }).setOrigin(0.5).setDepth(100);
   }
 
-  update(score, lives, level, hopsCompleted, highScore) {
+  update(score, lives, level, hopsCompleted, highScore, currency, shieldActive, magnetActive) {
     this.scoreText.setText(`Score: ${score}`);
     this.livesText.setText('Lives: ' + '\u2665'.repeat(Math.max(0, lives)));
     this.levelText.setText(`Level: ${level}  Progress: ${hopsCompleted}`);
     this.highScoreText.setText(`Best: ${highScore}`);
+    this.currencyText.setText(`Coins: ${currency || 0}`);
+
+    const statusParts = [];
+    if (shieldActive) statusParts.push('\u25CF Shield');
+    if (magnetActive) statusParts.push('\u25CF Magnet');
+    this.statusText.setText(statusParts.join('  '));
   }
 }

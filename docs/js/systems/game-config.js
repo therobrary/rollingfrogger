@@ -19,4 +19,7 @@ const GameConfig = {
   cameraShakeDuration: 200,
   cameraShakeStrength: 0.015,
   countdownDuration: 1200,
+  magnetDurationMs: 5000,
+  pickupCollectionRadius: 28,
+  maxPickupsOnScreen: 12,
 };
