@@ -1,0 +1,22 @@
+# Opencode AI project directory
+.opencode/
+.playwright-cli/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node (if any tooling is added later)
+node_modules/
+package.json
+package-lock.json
+*.tgz
+
+# Environment
+.env
+.env.local
+
+# Editor
+*.swp
+*.swo
+*~
