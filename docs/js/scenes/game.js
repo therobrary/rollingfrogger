@@ -304,6 +304,7 @@ class GameScene extends Phaser.Scene {
 
     TrafficSpawner.updateTraffic(this, time);
     RiverManager.updateRiverEntities(this, delta / 1000);
+    RiverManager.checkPlayerOnFloating(this);
     RiverManager.movePlayerWithEntity(this, delta / 1000);
     PlayerController.handlePlayerMove(this, time);
     PickupManager.checkPickupCollection(this);

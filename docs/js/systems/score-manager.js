@@ -256,6 +256,7 @@ const ScoreManager = {
     scene.score = Math.max(0, scene.score - GameConfig.scorePenalty);
     scene.shieldActive = false;
     scene.magnetActive = false;
+    scene.ridingEntity = null;
     scene.player.clearTint();
     if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
     if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
@@ -315,6 +316,7 @@ const ScoreManager = {
       if (scene._perfectMode) scene._perfectMode = false;
       scene.shieldActive = false;
       scene.magnetActive = false;
+      scene.ridingEntity = null;
       scene.player.clearTint();
       if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
       if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
@@ -362,6 +364,7 @@ const ScoreManager = {
     scene.score = Math.max(0, scene.score - GameConfig.scorePenalty);
     scene.shieldActive = false;
     scene.magnetActive = false;
+    scene.ridingEntity = null;
     scene.player.clearTint();
     if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
     if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }

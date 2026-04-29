@@ -24,9 +24,9 @@ class MenuScene extends Phaser.Scene {
       star.setScale(Phaser.Math.FloatBetween(0.5, 1.5));
     }
 
-    // Animated title with shadow
-    const title = this.add.text(width / 2, height * 0.22, 'ROLLING-FROGGER', {
-      fontSize: '52px',
+    // Title section (top area)
+    const title = this.add.text(width / 2, 80, 'ROLLING-FROGGER', {
+      fontSize: '48px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#44ff88',
       fontStyle: 'bold',
@@ -35,8 +35,8 @@ class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Subtitle with road theme
-    this.add.text(width / 2, height * 0.34, 'Rolling Rd x Grigsby Dr', {
-      fontSize: '22px',
+    this.add.text(width / 2, 125, 'Rolling Rd x Grigsby Dr', {
+      fontSize: '20px',
       fontFamily: 'Arial, sans-serif',
       color: '#aaaacc',
       stroke: '#000000',
@@ -44,8 +44,8 @@ class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // School name
-    this.add.text(width / 2, height * 0.42, 'West Springfield High School', {
-      fontSize: '18px',
+    this.add.text(width / 2, 152, 'West Springfield High School', {
+      fontSize: '16px',
       fontFamily: 'Arial, sans-serif',
       color: '#ffdd44',
       fontStyle: 'bold',
@@ -54,21 +54,19 @@ class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Decorative road line
-    this.add.rectangle(width / 2, height * 0.49, 200, 4, 0x444444).setOrigin(0.5);
+    this.add.rectangle(width / 2, 175, 200, 4, 0x444444).setOrigin(0.5);
     for (let i = 0; i < 5; i++) {
       this.add.rectangle(
         width / 2 - 80 + i * 40,
-        height * 0.49,
+        175,
         16, 2, 0x666666
       ).setOrigin(0.5);
     }
 
-    // Play button with glow
-    const btnX = width / 2 - 80;
-    const btnY = height * 0.54;
-    const playBtn = this.add.image(btnX + 80, btnY, 'btn_play').setInteractive({ useHandCursor: true });
-
-    const playText = this.add.text(btnX + 80, btnY, 'PLAY', {
+    // Play button
+    const playBtnY = 210;
+    const playBtn = this.add.image(width / 2, playBtnY, 'btn_play').setInteractive({ useHandCursor: true });
+    const playText = this.add.text(width / 2, playBtnY, 'PLAY', {
       fontSize: '26px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#ffffff',
@@ -76,46 +74,39 @@ class MenuScene extends Phaser.Scene {
       strokeThickness: 4
     }).setOrigin(0.5);
 
-    // Mode selection buttons
-    const modeBtnY = height * 0.60;
-    const modeBtnWidth = 160;
-    const modeBtnHeight = 36;
-    const classicBtnX = width / 2 - modeBtnWidth / 2;
-    const endlessBtnX = width / 2 + modeBtnWidth / 2 - 10;
-
+    // Mode selection
     ModeManager.init();
     this._selectedMode = ModeManager.getMode();
     this._selectedDifficulty = ModeManager.getDifficulty();
 
-    // Mode select button (opens full mode selection screen)
-    const modeSelectBtnX = width / 2 - 60;
-    const modeSelectBtnY = height * 0.565;
-    const modeSelectBtn = this.add.rectangle(modeSelectBtnX + 60, modeSelectBtnY, 120, 30, 0x442266)
+    // ALL MODES button
+    const allModesBtnY = 250;
+    const allModesBtn = this.add.rectangle(width / 2, allModesBtnY, 120, 28, 0x442266)
       .setInteractive({ useHandCursor: true });
-    const modeSelectText = this.add.text(modeSelectBtnX + 60, modeSelectBtnY, 'ALL MODES', {
-      fontSize: '13px',
+    this.add.text(width / 2, allModesBtnY, 'ALL MODES', {
+      fontSize: '12px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#aa44ff',
       stroke: '#000000',
       strokeThickness: 2
     }).setOrigin(0.5);
-    modeSelectBtn.on('pointerover', () => modeSelectBtn.setFillStyle(0x663388));
-    modeSelectBtn.on('pointerout', () => modeSelectBtn.setFillStyle(0x442266));
-    modeSelectBtn.on('pointerdown', () => {
+    allModesBtn.on('pointerover', () => allModesBtn.setFillStyle(0x663388));
+    allModesBtn.on('pointerout', () => allModesBtn.setFillStyle(0x442266));
+    allModesBtn.on('pointerdown', () => {
       this.scene.start('ModeSelectScene');
     });
 
-    // Initialize character roster
-    CharacterRoster.init();
+    // Classic / Endless mode buttons
+    const modeBtnY = 285;
+    const modeBtnWidth = 140;
+    const modeBtnHeight = 32;
+    const classicBtnX = width / 2 - modeBtnWidth - 5;
+    const endlessBtnX = width / 2 + 5;
 
-    // Initialize achievement panel
-    AchievementPanel.init();
-
-    // Classic mode button
     this._classicBtn = this.add.rectangle(classicBtnX + modeBtnWidth / 2, modeBtnY, modeBtnWidth, modeBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
     this._classicBtnText = this.add.text(classicBtnX + modeBtnWidth / 2, modeBtnY, 'CLASSIC', {
-      fontSize: '16px',
+      fontSize: '14px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: this._selectedMode === 'classic' ? '#44ff88' : '#88aacc',
       stroke: '#000000',
@@ -125,11 +116,10 @@ class MenuScene extends Phaser.Scene {
     this._classicBtn.on('pointerout', () => this._classicBtn.setFillStyle(this._selectedMode === 'classic' ? 0x226644 : 0x224466));
     this._classicBtn.on('pointerdown', () => this._selectMode('classic'));
 
-    // Endless mode button
     this._endlessBtn = this.add.rectangle(endlessBtnX + modeBtnWidth / 2, modeBtnY, modeBtnWidth, modeBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
     this._endlessBtnText = this.add.text(endlessBtnX + modeBtnWidth / 2, modeBtnY, 'ENDLESS', {
-      fontSize: '16px',
+      fontSize: '14px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: this._selectedMode === 'endless' ? '#44ff88' : '#88aacc',
       stroke: '#000000',
@@ -139,27 +129,27 @@ class MenuScene extends Phaser.Scene {
     this._endlessBtn.on('pointerout', () => this._endlessBtn.setFillStyle(this._selectedMode === 'endless' ? 0x226644 : 0x224466));
     this._endlessBtn.on('pointerdown', () => this._selectMode('endless'));
 
-    // Mode description text
-    this._modeDescription = this.add.text(width / 2, modeBtnY + 35, ModeManager.getModeDescription(this._selectedMode), {
-      fontSize: '12px',
+    // Mode description
+    this._modeDescription = this.add.text(width / 2, modeBtnY + 22, ModeManager.getModeDescription(this._selectedMode), {
+      fontSize: '11px',
       fontFamily: 'Arial, sans-serif',
       color: '#667788',
       align: 'center'
     }).setOrigin(0.5);
 
     // Difficulty selector
-    const diffLabelY = modeBtnY + 60;
+    const diffLabelY = modeBtnY + 42;
     this.add.text(width / 2, diffLabelY, 'Difficulty', {
-      fontSize: '13px',
+      fontSize: '12px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#888899',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    const diffBtnY = diffLabelY + 22;
-    const diffBtnWidth = 48;
-    const diffBtnHeight = 26;
-    const diffGap = 6;
+    const diffBtnY = diffLabelY + 18;
+    const diffBtnWidth = 44;
+    const diffBtnHeight = 24;
+    const diffGap = 5;
     const totalDiffWidth = 5 * diffBtnWidth + 4 * diffGap;
     const diffStartX = width / 2 - totalDiffWidth / 2;
 
@@ -175,7 +165,7 @@ class MenuScene extends Phaser.Scene {
       const btn = this.add.rectangle(x, diffBtnY, diffBtnWidth, diffBtnHeight, btnColor)
         .setInteractive({ useHandCursor: true });
       const txt = this.add.text(x, diffBtnY, opt.label.toUpperCase(), {
-        fontSize: '11px',
+        fontSize: '10px',
         fontFamily: 'Arial Black, Arial, sans-serif',
         color: isActive ? '#44ff88' : '#88aacc',
         stroke: '#000000',
@@ -190,8 +180,8 @@ class MenuScene extends Phaser.Scene {
       this._diffBtnTexts.push(txt);
     });
 
-    this._difficultyDescription = this.add.text(width / 2, diffBtnY + 22, ModeManager.getDifficultyDescription(), {
-      fontSize: '11px',
+    this._difficultyDescription = this.add.text(width / 2, diffBtnY + 18, ModeManager.getDifficultyDescription(), {
+      fontSize: '10px',
       fontFamily: 'Arial, sans-serif',
       color: '#556677',
       align: 'center'
@@ -220,42 +210,47 @@ class MenuScene extends Phaser.Scene {
       this.scene.start('GameScene', { mode: this._selectedMode, difficulty: this._selectedDifficulty });
     });
 
-    // Instructions panel
-    const instrY = height * 0.74;
+    // Initialize character roster
+    CharacterRoster.init();
 
+    // Initialize achievement panel
+    AchievementPanel.init();
+
+    // Instructions panel
+    const instrY = 420;
     this.add.text(width / 2, instrY, 'How to Play', {
-      fontSize: '16px',
+      fontSize: '14px',
       fontFamily: 'Arial, sans-serif',
       color: '#888899',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, instrY + 28, 'Arrow Keys or WASD to move', {
-      fontSize: '14px',
+    this.add.text(width / 2, instrY + 22, 'Arrow Keys or WASD to move', {
+      fontSize: '12px',
       fontFamily: 'Arial, sans-serif',
       color: '#666677'
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, instrY + 50, 'Navigate through traffic to reach the school', {
-      fontSize: '13px',
+    this.add.text(width / 2, instrY + 40, 'Navigate through traffic to reach the school', {
+      fontSize: '11px',
       fontFamily: 'Arial, sans-serif',
       color: '#555566'
     }).setOrigin(0.5);
 
     // Equipped character display
     const equippedChar = CharacterRoster.getEquippedCharacter();
-    this.add.text(width / 2, instrY + 74, `Playing as: ${equippedChar.name}`, {
-      fontSize: '12px',
+    this.add.text(width / 2, instrY + 58, `Playing as: ${equippedChar.name}`, {
+      fontSize: '11px',
       fontFamily: 'Arial, sans-serif',
       color: CHARACTER_DATA.rarityColors[equippedChar.rarity] || '#aaaaaa',
       stroke: '#000000',
       strokeThickness: 2
     }).setOrigin(0.5);
 
-    // Action buttons row (chars, achieve, settings)
-    const actionBtnY = height * 0.83;
+    // Action buttons row (CHARS, ACHIEVE, SETTINGS)
+    const actionBtnY = 510;
     const actionBtnWidth = 70;
-    const actionBtnHeight = 30;
+    const actionBtnHeight = 28;
     const actionGap = 10;
     const totalActionWidth = 3 * actionBtnWidth + 2 * actionGap;
     const actionStartX = width / 2 - totalActionWidth / 2;
@@ -264,8 +259,8 @@ class MenuScene extends Phaser.Scene {
     const charBtnX = actionStartX;
     const charBtn = this.add.rectangle(charBtnX + actionBtnWidth / 2, actionBtnY, actionBtnWidth, actionBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
-    const charBtnText = this.add.text(charBtnX + actionBtnWidth / 2, actionBtnY, 'CHARS', {
-      fontSize: '12px',
+    this.add.text(charBtnX + actionBtnWidth / 2, actionBtnY, 'CHARS', {
+      fontSize: '11px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#4488ff',
       stroke: '#000000',
@@ -281,7 +276,7 @@ class MenuScene extends Phaser.Scene {
     const achBtnX = charBtnX + actionBtnWidth + actionGap;
     const achBtn = this.add.rectangle(achBtnX + actionBtnWidth / 2, actionBtnY, actionBtnWidth, actionBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
-    const achBtnText = this.add.text(achBtnX + actionBtnWidth / 2, actionBtnY, 'ACHIEVE', {
+    this.add.text(achBtnX + actionBtnWidth / 2, actionBtnY, 'ACHIEVE', {
       fontSize: '10px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#ffaa00',
@@ -298,8 +293,8 @@ class MenuScene extends Phaser.Scene {
     const settingsBtnX = achBtnX + actionBtnWidth + actionGap;
     const settingsBtn = this.add.rectangle(settingsBtnX + actionBtnWidth / 2, actionBtnY, actionBtnWidth, actionBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
-    const settingsBtnText = this.add.text(settingsBtnX + actionBtnWidth / 2, actionBtnY, 'SETTINGS', {
-      fontSize: '12px',
+    this.add.text(settingsBtnX + actionBtnWidth / 2, actionBtnY, 'SETTINGS', {
+      fontSize: '11px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#ffaa00',
       stroke: '#000000',
@@ -311,16 +306,20 @@ class MenuScene extends Phaser.Scene {
       this._openSettings();
     });
 
-    // Audio toggle button
-    const audioBtnX = width / 2 - 150;
-    const audioBtnY = height * 0.89;
+    // Audio toggle and Accessibility buttons
+    const bottomBtnY = 555;
+    const bottomBtnWidth = 70;
+    const bottomBtnHeight = 26;
+
+    // SFX toggle
+    const audioBtnX = width / 2 - bottomBtnWidth - 5;
     if (typeof AudioManager !== 'undefined') AudioManager.init();
     this._audioEnabled = typeof AudioManager !== 'undefined';
     this._musicOn = this._audioEnabled && !AudioManager.isMusicMuted();
     this._sfxOn = this._audioEnabled && !AudioManager.isSfxMuted();
-    this._audioBtn = this.add.rectangle(audioBtnX + 35, audioBtnY, 70, 26, 0x224466)
+    this._audioBtn = this.add.rectangle(audioBtnX + bottomBtnWidth / 2, bottomBtnY, bottomBtnWidth, bottomBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
-    this._audioBtnText = this.add.text(audioBtnX + 35, audioBtnY, 'SFX: ON', {
+    this._audioBtnText = this.add.text(audioBtnX + bottomBtnWidth / 2, bottomBtnY, 'SFX: ON', {
       fontSize: '10px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#44ff88',
@@ -331,12 +330,11 @@ class MenuScene extends Phaser.Scene {
     this._audioBtn.on('pointerout', () => this._audioBtn.setFillStyle(0x224466));
     this._audioBtn.on('pointerdown', () => this._toggleAudio());
 
-    // Accessibility quick settings
-    const accBtnX = width / 2 + 10;
-    const accBtnY = height * 0.89;
-    this._accBtn = this.add.rectangle(accBtnX + 35, accBtnY, 70, 26, 0x224466)
+    // Accessibility button
+    const accBtnX = width / 2 + 5;
+    this._accBtn = this.add.rectangle(accBtnX + bottomBtnWidth / 2, bottomBtnY, bottomBtnWidth, bottomBtnHeight, 0x224466)
       .setInteractive({ useHandCursor: true });
-    this._accBtnText = this.add.text(accBtnX + 35, accBtnY, 'ACCESS', {
+    this._accBtnText = this.add.text(accBtnX + bottomBtnWidth / 2, bottomBtnY, 'ACCESS', {
       fontSize: '10px',
       fontFamily: 'Arial Black, Arial, sans-serif',
       color: '#aa44ff',
@@ -348,8 +346,8 @@ class MenuScene extends Phaser.Scene {
     this._accBtn.on('pointerdown', () => this._openAccessibility());
 
     // Footer
-    this.add.text(width / 2, height - 20, 'A game about crossing Rolling Rd safely', {
-      fontSize: '12px',
+    this.add.text(width / 2, 695, 'A game about crossing Rolling Rd safely', {
+      fontSize: '11px',
       fontFamily: 'Arial, sans-serif',
       color: '#333344'
     }).setOrigin(0.5);
