@@ -25,30 +25,17 @@ class LaneRenderer {
       }
     }
 
-     // River lane
-    const riverLanes = LANE_DATA.riverLanes || [];
-    for (const riverLaneIdx of riverLanes) {
-      for (let tx = 0; tx < Math.ceil(gameWidth / tileSize) + 1; tx++) {
-        scene.add.image(tx * tileSize - tileSize / 4, laneY[riverLaneIdx], 'tile_water');
-      }
-      const waveColor = `rgba(100,180,255,0.3)`;
-      for (let wx = 0; wx < Math.ceil(gameWidth / (tileSize * 0.75)); wx++) {
-        const wave = scene.add.circle(
-          wx * tileSize * 0.75 + tileSize * 0.375,
-          laneY[riverLaneIdx],
-          12,
-          0x66aadd
-        );
-        wave.setAlpha(0.15);
-        wave.setDepth(0);
-      }
-      scene.add.text(12, laneY[riverLaneIdx] - 8, LANE_DATA.lanes[riverLaneIdx].label, {
-        fontSize: '9px',
-        fontFamily: 'Arial, sans-serif',
-        color: '#66aaff',
-        fontStyle: 'bold'
-      }).setDepth(1);
+    // Median lane (concrete safe zone)
+    const medianLane = LANE_DATA.medianLane;
+    for (let tx = 0; tx < Math.ceil(gameWidth / tileSize); tx++) {
+      scene.add.image(tx * tileSize + tileSize / 2, laneY[medianLane], 'tile_median');
     }
+    scene.add.text(12, laneY[medianLane] - 8, LANE_DATA.lanes[medianLane].label, {
+      fontSize: '9px',
+      fontFamily: 'Arial, sans-serif',
+      color: '#aaaaaa',
+      fontStyle: 'bold'
+    }).setDepth(1);
 
     // Top road lanes (right) - vehicles travel right
     for (const lane of LANE_DATA.rightRoadLanes) {

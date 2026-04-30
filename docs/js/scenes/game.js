@@ -8,8 +8,6 @@ class GameScene extends Phaser.Scene {
     this.hopsCompleted = 0;
     this.playerMoving = false;
     this.lastMoveTime = 0;
-    this.ridingEntity = null;
-    this.drowning = false;
     this.laneRenderer = new LaneRenderer();
     this.hudRenderer = new HUDRenderer();
     this.currency = 0;
@@ -227,9 +225,6 @@ class GameScene extends Phaser.Scene {
     const { laneDirections, laneY } = this.laneRenderer.drawPlayfield(this, this.gameWidth, this.tileSize);
     this.laneDirections = laneDirections;
     this.laneRenderer.drawTrafficArrows(this, laneDirections, laneY);
-    RiverManager.createRiverGroups(this);
-    const safeZoneFreq = this._difficultyDirector ? this._difficultyDirector.getSafeZoneFrequency() : 1;
-    RiverManager.spawnRiverEntities(this, safeZoneFreq);
     this.createPlayer();
     TrafficSpawner.createTraffic(this, laneDirections, 1, this._diffSpeedMult, this._diffDensityMult);
     PickupManager.createPickupGroup(this);
@@ -253,14 +248,8 @@ class GameScene extends Phaser.Scene {
     // Draw initial section lanes
     ScrollManager.drawSectionLanes(this, initialSection, 0);
 
-    // Create river physics groups (required before spawning)
-    RiverManager.createRiverGroups(this);
-
     // Spawn initial traffic
     ScrollManager.spawnSectionTraffic(this, initialSection, 0);
-
-    // Spawn initial river entities
-    ScrollManager.spawnSectionRiverEntities(this, initialSection, 0);
 
     this.createPlayer();
 
@@ -314,9 +303,6 @@ class GameScene extends Phaser.Scene {
 
     TrafficSpawner.updateTraffic(this, time);
     this._updateBikes(time, delta);
-    RiverManager.updateRiverEntities(this, delta / 1000);
-    RiverManager.checkPlayerOnFloating(this);
-    RiverManager.movePlayerWithEntity(this, delta / 1000);
     PlayerController.handlePlayerMove(this, time);
     PickupManager.checkPickupCollection(this);
     PickupManager.updateIndicators(this);
@@ -346,9 +332,6 @@ class GameScene extends Phaser.Scene {
   }
 
   onPlayerMoved(dx, dy) {
-    RiverManager.checkDrowning(this);
-    if (this.drowning) return;
-
     // Track player position for near-miss detection
     this._lastPlayerX = this.player.x;
     this._lastPlayerY = this.player.y;
@@ -622,7 +605,6 @@ class GameScene extends Phaser.Scene {
 
     // Classic-mode rebuild (inlined to avoid super.rebuildLevel crash)
     TrafficSpawner.clearTraffic(this);
-    if (typeof RiverManager !== 'undefined') RiverManager.clearRiverEntities(this);
     if (typeof GoalManager !== 'undefined') GoalManager.clearGoalBays(this);
     if (typeof PickupManager !== 'undefined') PickupManager.clearPickups(this);
     if (this.bikes) this.bikes.clear(true, true);
@@ -631,12 +613,7 @@ class GameScene extends Phaser.Scene {
     this.player.setPosition(GameConfig.gameWidthHalf, this.startRowY);
     this.player.setAlpha(1);
     this.player.setVelocity(0, 0);
-    this.drowning = false;
     TrafficSpawner.createTraffic(this, this.laneDirections, this._bonusSpeedMultiplier, this._diffSpeedMult, this._diffDensityMult);
-    if (typeof RiverManager !== 'undefined') {
-      RiverManager.createRiverGroups(this);
-      RiverManager.spawnRiverEntities(this);
-    }
     if (typeof GoalManager !== 'undefined') GoalManager.createGoalBays(this);
     if (typeof PickupManager !== 'undefined') PickupManager.spawnPickups(this);
 

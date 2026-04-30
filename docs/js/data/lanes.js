@@ -7,7 +7,7 @@
 //   Index 6  = Road lane (vehicles travel right)
 //   Index 5  = Road lane (vehicles travel right)
 //   Index 4  = Road lane (vehicles travel right)
-//   Index 3  = River (floating logs/turtles, drown if not on platform)
+//   Index 3  = Median (safe concrete zone)
 //   Index 2  = Road lane (vehicles travel left)
 //   Index 1  = Road lane (vehicles travel left)
 //   Index 0  = Road lane (vehicles travel left)
@@ -25,25 +25,13 @@ const LANE_DATA = {
     { index: 0,  type: 'road',    direction: -1, label: 'TRAFFIC' },
     { index: 1,  type: 'road',    direction: -1, label: 'TRAFFIC' },
     { index: 2,  type: 'road',    direction: -1, label: 'TRAFFIC' },
-    { index: 3,  type: 'river',   direction:  0, label: 'RIVER' },
+    { index: 3,  type: 'median',  direction:  0, label: 'MEDIAN' },
     { index: 4,  type: 'road',    direction:  1, label: 'TRAFFIC' },
     { index: 5,  type: 'road',    direction:  1, label: 'TRAFFIC' },
     { index: 6,  type: 'road',    direction:  1, label: 'TRAFFIC' },
     { index: 7,  type: 'safe',    direction:  0, label: 'SAFE ZONE' },
     { index: 8,  type: 'sidewalk',direction:  0, label: 'BIKE LANE' },
     { index: 9,  type: 'school',  direction:  0, label: 'SCHOOL' },
-  ],
-
-  // River lanes (lanes where player can drown without floating platform)
-  riverLanes: [3],
-
-  // River lane entity definitions (index matches riverLanes order)
-  riverLaneDefs: [
-    { speed: 80, direction: -1, entities: [
-      { type: 'log', width: 56 },
-      { type: 'turtle', width: 56 },
-      { type: 'log', width: 56 }
-    ]}
   ],
 
   // Traffic lanes only (lanes where vehicles spawn and move)
@@ -65,10 +53,10 @@ const LANE_DATA = {
   // Right-road lanes (vehicles travel right, direction +1)
   rightRoadLanes: [4, 5, 6],
 
-  // Safe zones (non-road, non-river lanes)
-  safeLanes: [7, 8, 9],
+  // Safe zones (non-road lanes)
+  safeLanes: [3, 7, 8, 9],
 
-  // Median lane index (now river)
+  // Median lane index
   medianLane: 3,
 
   // School goal lane index
@@ -77,7 +65,7 @@ const LANE_DATA = {
   // Sidewalk/bike lane index
   sidewalkLane: 8,
 
-  // Safe zone lane index (above river)
+  // Safe zone lane index (above median)
   safeZoneLane: 7,
 
   // Number of road lanes per side (left and right)

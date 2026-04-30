@@ -71,11 +71,6 @@ class BootScene extends Phaser.Scene {
     this.makeTileFallback('tile_sidewalk', 0x999999);
     this.makeTileFallback('tile_school', 0xcc4444);
 
-    // River textures
-    this.makeWaterTileFallback();
-    this.makeLogFallback();
-    this.makeTurtleFallback();
-
     // Utility textures
     if (!this.textures.exists('lane_marker')) {
       const g = this.make.graphics({ x: 0, y: 0, add: false });
@@ -151,66 +146,6 @@ class BootScene extends Phaser.Scene {
     g.lineStyle(2, 0x000000, 0.3);
     g.strokeRect(0, 0, 160, 48);
     g.generateTexture(key, 160, 48);
-    g.destroy();
-  }
-
-  makeWaterTileFallback() {
-    if (this.textures.exists('tile_water')) return;
-    const g = this.make.graphics({ x: 0, y: 0, add: false });
-    g.fillStyle(0x2266aa, 1);
-    g.fillRect(0, 0, 64, 64);
-    g.fillStyle(0x3388cc, 0.5);
-    g.fillCircle(16, 16, 10);
-    g.fillCircle(48, 32, 8);
-    g.fillCircle(24, 48, 12);
-    g.fillCircle(52, 12, 6);
-    g.fillStyle(0x4499dd, 0.3);
-    g.fillCircle(32, 8, 14);
-    g.fillCircle(8, 40, 10);
-    g.fillCircle(56, 52, 9);
-    g.generateTexture('tile_water', 64, 64);
-    g.destroy();
-  }
-
-  makeLogFallback() {
-    if (this.textures.exists('log')) return;
-    const g = this.make.graphics({ x: 0, y: 0, add: false });
-    g.fillStyle(0x8B5E3C, 1);
-    g.fillRoundedRect(0, 8, 56, 32, 8);
-    g.fillStyle(0xA0724A, 1);
-    g.fillRoundedRect(4, 12, 48, 24, 6);
-    g.fillStyle(0x6B3E1C, 1);
-    g.fillCircle(8, 24, 3);
-    g.fillCircle(20, 24, 2);
-    g.fillCircle(34, 24, 3);
-    g.fillCircle(46, 24, 2);
-    g.fillStyle(0x9B6E4C, 0.5);
-    g.fillRect(6, 14, 44, 2);
-    g.fillRect(6, 32, 44, 2);
-    g.generateTexture('log', 56, 48);
-    g.destroy();
-  }
-
-  makeTurtleFallback() {
-    if (this.textures.exists('turtle')) return;
-    const g = this.make.graphics({ x: 0, y: 0, add: false });
-    g.fillStyle(0x2D5A1E, 1);
-    g.fillCircle(12, 24, 7);
-    g.fillCircle(44, 24, 7);
-    g.fillStyle(0x3D7A2E, 1);
-    g.fillEllipse(28, 24, 32, 28);
-    g.fillStyle(0x4D9A3E, 1);
-    g.fillEllipse(30, 22, 24, 22);
-    g.fillStyle(0xDDCC44, 1);
-    g.fillCircle(26, 18, 2.5);
-    g.fillCircle(34, 18, 2.5);
-    g.fillCircle(30, 26, 2.5);
-    g.fillCircle(26, 30, 2);
-    g.fillCircle(34, 30, 2);
-    g.fillStyle(0x2D5A1E, 1);
-    g.fillCircle(10, 24, 3);
-    g.fillCircle(46, 24, 3);
-    g.generateTexture('turtle', 56, 48);
     g.destroy();
   }
 
