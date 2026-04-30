@@ -580,6 +580,9 @@ class GameScene extends Phaser.Scene {
   rebuildLevel() {
     if (this.isEndless()) {
       // In endless mode, just reset player position
+      this.tweens.killTweensOf(this.player);
+      this.playerMoving = false;
+      this.lastMoveTime = 0;
       this.player.setPosition(GameConfig.gameWidthHalf, this.startRowY);
       this.player.setAlpha(1);
       this.player.setVelocity(0, 0);
@@ -600,6 +603,8 @@ class GameScene extends Phaser.Scene {
     // Classic-mode rebuild (inlined to avoid super.rebuildLevel crash)
     // Kill any lingering tweens on the player to prevent stale state
     this.tweens.killTweensOf(this.player);
+    this.playerMoving = false;
+    this.lastMoveTime = 0;
 
     // Clear traffic vehicles properly — use destroy() not clear() to avoid orphaned physics refs
     if (this.cars) this.cars.getChildren().forEach(c => { if (c.destroy) c.destroy(); });

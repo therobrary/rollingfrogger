@@ -64,6 +64,9 @@ const PlayerController = {
       y: targetY,
       duration: GameConfig.moveDuration,
       ease: 'Linear',
+      onStop: () => {
+        scene.playerMoving = false;
+      },
       onComplete: () => {
         scene.playerMoving = false;
         if (scene.ridingEntity && entityStartX !== null) {
