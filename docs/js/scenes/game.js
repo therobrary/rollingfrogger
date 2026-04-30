@@ -613,8 +613,11 @@ class GameScene extends Phaser.Scene {
     this.player.setPosition(GameConfig.gameWidthHalf, this.startRowY);
     this.player.setAlpha(1);
     this.player.setVelocity(0, 0);
+    this.playerMoving = false;
+    this.lastMoveTime = 0;
     TrafficSpawner.createTraffic(this, this.laneDirections, this._bonusSpeedMultiplier, this._diffSpeedMult, this._diffDensityMult);
     if (typeof GoalManager !== 'undefined') GoalManager.createGoalBays(this);
+    if (typeof CollisionManager !== 'undefined') CollisionManager.setupGoalOverlap(this);
     if (typeof PickupManager !== 'undefined') PickupManager.spawnPickups(this);
 
     // Reset near miss tracking for no-miss mode

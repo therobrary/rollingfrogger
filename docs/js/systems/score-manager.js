@@ -400,6 +400,7 @@ const ScoreManager = {
       scene.player.setPosition(GameConfig.gameWidthHalf, scene.startRowY);
       scene.player.setVelocity(0, 0);
       scene.player.setAlpha(1);
+      scene.playerMoving = false;
       if (ModeManager.isEndless()) {
         scene.cameras.main.setScroll(0, 0);
       }
