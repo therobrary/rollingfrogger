@@ -604,17 +604,35 @@ class GameScene extends Phaser.Scene {
     }
 
     // Classic-mode rebuild (inlined to avoid super.rebuildLevel crash)
-    TrafficSpawner.clearTraffic(this);
+    // Kill any lingering tweens on the player to prevent stale state
+    this.tweens.killTweensOf(this.player);
+
+    // Clear traffic vehicles properly — use destroy() not clear() to avoid orphaned physics refs
+    if (this.cars) this.cars.getChildren().forEach(c => { if (c.destroy) c.destroy(); });
+    if (this.buses) this.buses.getChildren().forEach(c => { if (c.destroy) c.destroy(); });
+    if (this.trucks) this.trucks.getChildren().forEach(c => { if (c.destroy) c.destroy(); });
     if (typeof GoalManager !== 'undefined') GoalManager.clearGoalBays(this);
     if (typeof PickupManager !== 'undefined') PickupManager.clearPickups(this);
-    if (this.bikes) this.bikes.clear(true, true);
+    if (this.bikes) this.bikes.getChildren().forEach(c => { if (c.destroy) c.destroy(); });
     this._bikeOnScreen = false;
     this._bikeSpawnTimer = 0;
+
+    // Reset player physics body state properly
+    if (this.player && this.player.body) {
+      this.player.body.stop();
+      this.player.body.enable = true;
+      this.player.body.reset(GameConfig.gameWidthHalf, this.startRowY);
+    }
     this.player.setPosition(GameConfig.gameWidthHalf, this.startRowY);
     this.player.setAlpha(1);
     this.player.setVelocity(0, 0);
     this.playerMoving = false;
     this.lastMoveTime = 0;
+
+    // Refresh physics world state to clear any stale collision handlers
+    this.physics.resume();
+    this.physics.pause();
+
     TrafficSpawner.createTraffic(this, this.laneDirections, this._bonusSpeedMultiplier, this._diffSpeedMult, this._diffDensityMult);
     if (typeof GoalManager !== 'undefined') GoalManager.createGoalBays(this);
     if (typeof CollisionManager !== 'undefined') CollisionManager.setupGoalOverlap(this);
