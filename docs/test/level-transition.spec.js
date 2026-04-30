@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 test('level 2 is playable after completing level 1', async ({ page }) => {
+  // Capture all console errors during the test
+  const consoleErrors = [];
+  page.on('console', msg => {
+    if (msg.type() === 'error' || msg.type() === 'warn') {
+      consoleErrors.push(`${msg.type()}: ${msg.text()}`);
+    }
+  });
+
   await page.goto('/');
 
   // Wait for Phaser game to load
@@ -104,11 +112,17 @@ test('level 2 is playable after completing level 1', async ({ page }) => {
   // Wait for level complete flash (600ms) + rebuildLevel + LEVEL 2 countdown (1200ms)
   await page.waitForTimeout(3000);
 
-  // Verify level 2 state
-  const level2State = await page.evaluate(() => {
+  // Log any console errors that occurred during the transition
+  if (consoleErrors.length > 0) {
+    console.log('Console errors during transition:', consoleErrors.join(' | '));
+  }
+
+  // Check if update crashed
+  const crashInfo = await page.evaluate(() => {
     const scene = game.scene.getScene('GameScene');
     if (!scene) return { error: 'GameScene not found' };
     return {
+      crashed: scene._updateCrashed,
       level: scene.level,
       gameActive: scene.gameActive,
       playerMoving: scene.playerMoving,
@@ -117,11 +131,14 @@ test('level 2 is playable after completing level 1', async ({ page }) => {
       physicsPaused: scene.physics.world.isPaused,
     };
   });
-  console.log('Level 2 state after transition:', JSON.stringify(level2State));
-  expect(level2State.level).toBe(2);
-  expect(level2State.gameActive).toBe(true);
-  expect(level2State.playerMoving).toBe(false);
-  expect(level2State.physicsPaused).toBe(false);
+  console.log('Level 2 state after transition:', JSON.stringify(crashInfo));
+  if (crashInfo.crashed) {
+    console.error('UPDATE LOOP CRASHED! Check browser console for details.');
+  }
+  expect(crashInfo.level).toBe(2);
+  expect(crashInfo.gameActive).toBe(true);
+  expect(crashInfo.playerMoving).toBe(false);
+  expect(crashInfo.physicsPaused).toBe(false);
 
   // === TEST 4: Simulate race condition on level 2 ===
   // Set playerMoving = true, call rebuildLevel, verify reset

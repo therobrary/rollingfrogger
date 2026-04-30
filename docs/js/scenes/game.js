@@ -292,42 +292,47 @@ class GameScene extends Phaser.Scene {
   }
 
   update(time, delta) {
-    // Update difficulty director
-    if (this._difficultyDirector && this.gameActive) {
-      this._difficultyDirector.update(this, time);
-      // Update cached multipliers
-      this._diffSpeedMult = this._difficultyDirector.getSpeedMultiplier();
-      this._diffDensityMult = this._difficultyDirector.getDensityMultiplier();
-      this._diffScoreMult = this._difficultyDirector.getScoreMultiplier();
-    }
-
-    TrafficSpawner.updateTraffic(this, time);
-    this._updateBikes(time, delta);
-    PlayerController.handlePlayerMove(this, time);
-    PickupManager.checkPickupCollection(this);
-    PickupManager.updateIndicators(this);
-    PickupManager.attractPickupsToPlayer(this);
-
-    // Update particle system
-    if (typeof ParticleManager !== 'undefined') {
-      ParticleManager.update(delta / 1000);
-      this._renderParticles();
-    }
-
-    // Endless mode: scroll manager and near-miss detection
-    if (this.isEndless()) {
-      ScrollManager.updateScroll(this, delta);
-      this._updateNearMissDetection(time);
-      this._updateComboTimer(time, delta);
-      this._trackEndlessTime(time, delta);
-    }
-
-    // Bonus mode: timer and special rules
-    if (this.isBonus() && this.gameActive) {
-      this._updateBonusMode(time, delta);
-      if (this._bonusStrictNearMisses) {
-        this._updateNearMissDetection(time);
+    try {
+      // Update difficulty director
+      if (this._difficultyDirector && this.gameActive) {
+        this._difficultyDirector.update(this, time);
+        // Update cached multipliers
+        this._diffSpeedMult = this._difficultyDirector.getSpeedMultiplier();
+        this._diffDensityMult = this._difficultyDirector.getDensityMultiplier();
+        this._diffScoreMult = this._difficultyDirector.getScoreMultiplier();
       }
+
+      TrafficSpawner.updateTraffic(this, time);
+      this._updateBikes(time, delta);
+      PlayerController.handlePlayerMove(this, time);
+      PickupManager.checkPickupCollection(this);
+      PickupManager.updateIndicators(this);
+      PickupManager.attractPickupsToPlayer(this);
+
+      // Update particle system
+      if (typeof ParticleManager !== 'undefined') {
+        ParticleManager.update(delta / 1000);
+        this._renderParticles();
+      }
+
+      // Endless mode: scroll manager and near-miss detection
+      if (this.isEndless()) {
+        ScrollManager.updateScroll(this, delta);
+        this._updateNearMissDetection(time);
+        this._updateComboTimer(time, delta);
+        this._trackEndlessTime(time, delta);
+      }
+
+      // Bonus mode: timer and special rules
+      if (this.isBonus() && this.gameActive) {
+        this._updateBonusMode(time, delta);
+        if (this._bonusStrictNearMisses) {
+          this._updateNearMissDetection(time);
+        }
+      }
+    } catch (e) {
+      console.error('[GameScene.update] CRASH:', e.message, e.stack);
+      this._updateCrashed = true;
     }
   }
 
@@ -391,6 +396,7 @@ class GameScene extends Phaser.Scene {
   }
 
   levelComplete() {
+    console.log('[GameScene] levelComplete() called, level=', this.level);
     // Track success for difficulty director
     if (this._difficultyDirector) {
       this._difficultyDirector.trackSuccess(this);
@@ -402,6 +408,7 @@ class GameScene extends Phaser.Scene {
   }
 
   showCountdown(text, callback) {
+    console.log('[GameScene] showCountdown:', text, 'gameActive=', this.gameActive, 'physicsPaused=', this.physics.world.isPaused);
     const { width, height } = this.scale;
     const countdownText = this.add.text(width / 2, height / 2, text, {
       fontSize: '48px',
@@ -421,6 +428,7 @@ class GameScene extends Phaser.Scene {
     });
 
     this.time.delayedCall(GameConfig.countdownDuration, () => {
+      console.log('[GameScene] countdown callback firing for:', text);
       countdownText.destroy();
       callback();
     });

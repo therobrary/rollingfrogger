@@ -71,9 +71,9 @@ const GoalManager = {
       scene.goalBays.forEach(bay => bay.destroy());
       scene.goalBays = [];
     }
+    // Clear children but keep the group alive so existing physics overlap handlers remain valid
     if (scene.goalBayGroups) {
-      scene.goalBayGroups.destroy();
-      scene.goalBayGroups = null;
+      scene.goalBayGroups.clear(true, true);
     }
   },
 
