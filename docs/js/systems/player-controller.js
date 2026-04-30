@@ -28,12 +28,15 @@ const PlayerController = {
   },
 
   getKeyboardInput(cursors, wasd) {
-    let dx = 0, dy = 0;
-    if (cursors.left.isDown || wasd.left.isDown) dx = -1;
-    else if (cursors.right.isDown || wasd.right.isDown) dx = 1;
-    else if (cursors.up.isDown || wasd.up.isDown) dy = -1;
-    else if (cursors.down.isDown || wasd.down.isDown) dy = 1;
-    return { dx, dy };
+    const left = cursors.left.isDown || wasd.left.isDown;
+    const right = cursors.right.isDown || wasd.right.isDown;
+    const up = cursors.up.isDown || wasd.up.isDown;
+    const down = cursors.down.isDown || wasd.down.isDown;
+    if (left) return { dx: -1, dy: 0 };
+    if (right) return { dx: 1, dy: 0 };
+    if (up) return { dx: 0, dy: -1 };
+    if (down) return { dx: 0, dy: 1 };
+    return { dx: 0, dy: 0 };
   },
 
   executeMove(scene, dx, dy) {

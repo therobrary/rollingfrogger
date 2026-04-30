@@ -76,54 +76,43 @@ const DifficultyDirector = {
     }
   },
 
+  _getClampedLevel() {
+    return Math.max(BalanceData.adaptive.minDifficultyLevel,
+      Math.min(BalanceData.adaptive.maxDifficultyLevel, this._difficultyLevel));
+  },
+
+  _applyLevelStep(base, factor) {
+    return base * (1 + this._getClampedLevel() * BalanceData.adaptive.levelStepSize * factor);
+  },
+
   // Get current speed multiplier (base * adaptive adjustments)
   getSpeedMultiplier() {
-    const levelStep = BalanceData.adaptive.levelStepSize;
-    const clampedLevel = Math.max(BalanceData.adaptive.minDifficultyLevel,
-      Math.min(BalanceData.adaptive.maxDifficultyLevel, this._difficultyLevel));
-    return this._baseSpeedMultiplier * (1 + clampedLevel * levelStep);
+    return this._baseSpeedMultiplier * (1 + this._getClampedLevel() * BalanceData.adaptive.levelStepSize);
   },
 
   // Get current density multiplier
   getDensityMultiplier() {
-    const levelStep = BalanceData.adaptive.levelStepSize;
-    const clampedLevel = Math.max(BalanceData.adaptive.minDifficultyLevel,
-      Math.min(BalanceData.adaptive.maxDifficultyLevel, this._difficultyLevel));
-    return this._baseDensityMultiplier * (1 + clampedLevel * levelStep * 0.7);
+    return this._applyLevelStep(this._baseDensityMultiplier, 0.7);
   },
 
   // Get hazard variety (which hazard types should appear)
   getHazardVariety() {
-    const levelStep = BalanceData.adaptive.levelStepSize;
-    const clampedLevel = Math.max(BalanceData.adaptive.minDifficultyLevel,
-      Math.min(BalanceData.adaptive.maxDifficultyLevel, this._difficultyLevel));
-    const baseVariety = this._baseHazardVariety;
-    const adaptiveBoost = clampedLevel * levelStep;
-    return Math.min(baseVariety + adaptiveBoost, 3.0);
+    return Math.min(this._baseHazardVariety + this._getClampedLevel() * BalanceData.adaptive.levelStepSize, 3.0);
   },
 
   // Get pickup spawn rate
   getPickupSpawnRate() {
-    const levelStep = BalanceData.adaptive.levelStepSize;
-    const clampedLevel = Math.max(BalanceData.adaptive.minDifficultyLevel,
-      Math.min(BalanceData.adaptive.maxDifficultyLevel, this._difficultyLevel));
-    return this._basePickupSpawnRate * (1 - clampedLevel * levelStep * 0.3);
+    return this._applyLevelStep(this._basePickupSpawnRate, -0.3);
   },
 
   // Get safe zone frequency
   getSafeZoneFrequency() {
-    const levelStep = BalanceData.adaptive.levelStepSize;
-    const clampedLevel = Math.max(BalanceData.adaptive.minDifficultyLevel,
-      Math.min(BalanceData.adaptive.maxDifficultyLevel, this._difficultyLevel));
-    return this._baseSafeZoneFrequency * (1 - clampedLevel * levelStep * 0.4);
+    return this._applyLevelStep(this._baseSafeZoneFrequency, -0.4);
   },
 
   // Get current score multiplier
   getScoreMultiplier() {
-    const levelStep = BalanceData.adaptive.levelStepSize;
-    const clampedLevel = Math.max(BalanceData.adaptive.minDifficultyLevel,
-      Math.min(BalanceData.adaptive.maxDifficultyLevel, this._difficultyLevel));
-    return this._baseScoreMultiplier * (1 + clampedLevel * levelStep * 0.5);
+    return this._applyLevelStep(this._baseScoreMultiplier, 0.5);
   },
 
   // Track player death for adaptive difficulty

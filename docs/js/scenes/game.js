@@ -451,12 +451,7 @@ class GameScene extends Phaser.Scene {
     if (!this.player || !this.gameActive) return;
 
     const radius = GameConfig.endlessNearMissRadius;
-    const allVehicles = [];
-    [this.cars, this.buses, this.trucks].forEach(group => {
-      group.getChildren().forEach(v => {
-        if (v.active) allVehicles.push(v);
-      });
-    });
+    const allVehicles = TrafficSpawner.getAllActiveVehicles(this);
 
     for (const vehicle of allVehicles) {
       const dx = this.player.x - vehicle.x;
@@ -465,10 +460,9 @@ class GameScene extends Phaser.Scene {
 
       // Check for near miss: vehicle is within near-miss radius but not colliding
       if (dist < radius && dist > 10) {
-        const vehicleId = vehicle.key + '_' + Math.floor(vehicle.x) + '_' + Math.floor(vehicle.y);
-        const alreadyCounted = this._nearMissEntities.some(e => e.id === vehicleId && (time - e.time) < GameConfig.endlessNearMissComboTimeout);
+        const alreadyCounted = this._nearMissEntities.some(e => e.vehicle === vehicle && (time - e.time) < GameConfig.endlessNearMissComboTimeout);
         if (!alreadyCounted) {
-          this._nearMissEntities.push({ id: vehicleId, time: time, dist: dist });
+          this._nearMissEntities.push({ vehicle: vehicle, time: time, dist: dist });
           this._registerNearMiss(time);
           if (this.hudRenderer) this.hudRenderer.updateNearMissCount(this._nearMissEntities.length);
         }

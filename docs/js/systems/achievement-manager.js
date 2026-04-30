@@ -25,14 +25,10 @@ const AchievementManager = {
 
   _loadTrackedValues(saved) {
     if (!saved) return;
-    if (typeof saved.hops === 'number') this._trackedValues.hops = saved.hops;
-    if (typeof saved.deaths === 'number') this._trackedValues.deaths = saved.deaths;
-    if (typeof saved.levelsCompleted === 'number') this._trackedValues.levelsCompleted = saved.levelsCompleted;
-    if (typeof saved.endlessTime === 'number') this._trackedValues.endlessTime = saved.endlessTime;
-    if (typeof saved.coinsCollected === 'number') this._trackedValues.coinsCollected = saved.coinsCollected;
-    if (typeof saved.maxNearMissCombo === 'number') this._trackedValues.maxNearMissCombo = saved.maxNearMissCombo;
-    if (typeof saved.perfectLevels === 'number') this._trackedValues.perfectLevels = saved.perfectLevels;
-    if (typeof saved.totalCurrency === 'number') this._trackedValues.totalCurrency = saved.totalCurrency;
+    const numericKeys = ['hops', 'deaths', 'levelsCompleted', 'endlessTime', 'coinsCollected', 'maxNearMissCombo', 'perfectLevels', 'totalCurrency'];
+    for (const key of numericKeys) {
+      if (typeof saved[key] === 'number') this._trackedValues[key] = saved[key];
+    }
     if (Array.isArray(saved.charactersPlayed)) this._trackedValues.charactersPlayed = saved.charactersPlayed;
   },
 
@@ -61,52 +57,13 @@ const AchievementManager = {
     const condition = achievement.condition;
 
     // Check if the tracked value meets the target
-    switch (condition) {
-      case 'hops':
-        if (tracked.hops >= achievement.target) {
-          return this.unlockAchievement(id);
-        }
-        break;
-      case 'deaths':
-        if (tracked.deaths >= achievement.target) {
-          return this.unlockAchievement(id);
-        }
-        break;
-      case 'levelsCompleted':
-        if (tracked.levelsCompleted >= achievement.target) {
-          return this.unlockAchievement(id);
-        }
-        break;
-      case 'endlessTime':
-        if (tracked.endlessTime >= achievement.target) {
-          return this.unlockAchievement(id);
-        }
-        break;
-      case 'coinsCollected':
-        if (tracked.coinsCollected >= achievement.target) {
-          return this.unlockAchievement(id);
-        }
-        break;
-      case 'maxNearMissCombo':
-        if (tracked.maxNearMissCombo >= achievement.target) {
-          return this.unlockAchievement(id);
-        }
-        break;
-      case 'perfectLevel':
-        if (tracked.perfectLevels >= achievement.target) {
-          return this.unlockAchievement(id);
-        }
-        break;
-      case 'totalCurrency':
-        if (tracked.totalCurrency >= achievement.target) {
-          return this.unlockAchievement(id);
-        }
-        break;
-      case 'charactersPlayed':
-        if (tracked.charactersPlayed.length >= achievement.target) {
-          return this.unlockAchievement(id);
-        }
-        break;
+    const trackedValue = this._trackedValues[condition];
+    if (trackedValue !== undefined) {
+      if (condition === 'charactersPlayed') {
+        if (trackedValue.length >= achievement.target) return this.unlockAchievement(id);
+      } else if (trackedValue >= achievement.target) {
+        return this.unlockAchievement(id);
+      }
     }
 
     // Update progress for applicable achievements

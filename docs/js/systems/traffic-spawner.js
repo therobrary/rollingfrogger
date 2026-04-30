@@ -90,5 +90,15 @@ const TrafficSpawner = {
     scene.cars.clear(true, true);
     scene.buses.clear(true, true);
     scene.trucks.clear(true, true);
+  },
+
+  getAllActiveVehicles(scene) {
+    const allVehicles = [];
+    [scene.cars, scene.buses, scene.trucks].forEach(group => {
+      group.getChildren().forEach(v => {
+        if (v.active) allVehicles.push(v);
+      });
+    });
+    return allVehicles;
   }
 };

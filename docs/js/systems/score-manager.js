@@ -8,6 +8,49 @@ const ScoreManager = {
     }
   },
 
+  _showDeathFlash(scene) {
+    const flash = scene.add.rectangle(
+      scene.gameWidth / 2,
+      scene.gameHeight / 2,
+      scene.gameWidth,
+      scene.gameHeight,
+      0xff0000,
+      0.4
+    ).setDepth(200);
+    scene.tweens.add({
+      targets: flash,
+      alpha: 0,
+      duration: GameConfig.deathFlashMs,
+      onComplete: () => flash.destroy()
+    });
+  },
+
+  _clearPowerupIndicators(scene) {
+    if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
+    if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
+  },
+
+  _showLevelCompleteFlash(scene, callback) {
+    const flash = scene.add.rectangle(
+      scene.gameWidth / 2,
+      scene.gameHeight / 2,
+      scene.gameWidth,
+      scene.gameHeight,
+      0x44ff88,
+      0.5
+    ).setDepth(200);
+
+    scene.tweens.add({
+      targets: flash,
+      alpha: 0,
+      duration: GameConfig.levelCompleteFlashMs,
+      onComplete: () => {
+        flash.destroy();
+        callback();
+      }
+    });
+  },
+
   updateHUD(scene) {
     const equippedChar = CharacterRoster ? CharacterRoster.getEquippedCharacter() : null;
     const charName = equippedChar ? equippedChar.name : null;
@@ -89,32 +132,16 @@ const ScoreManager = {
       AchievementManager.trackCurrency(scene.currency);
       ChallengeManager.checkChallengeProgress('score', scene.score);
 
-      const flash = scene.add.rectangle(
-        scene.gameWidth / 2,
-        scene.gameHeight / 2,
-        scene.gameWidth,
-        scene.gameHeight,
-        0x44ff88,
-        0.5
-      ).setDepth(200);
-
-      scene.tweens.add({
-        targets: flash,
-        alpha: 0,
-        duration: GameConfig.levelCompleteFlashMs,
-        onComplete: () => {
-          flash.destroy();
-          // Generate new section ahead
-          if (ScrollManager.tryApplyNextSection) {
-            ScrollManager.tryApplyNextSection(scene);
-          }
-          scene.rebuildLevel();
-          scene.showCountdown(`DISTANCE: ${scene.distance}`, () => {
-            scene.gameActive = true;
-            scene.physics.resume();
-            this.updateHUD(scene);
-          });
+      this._showLevelCompleteFlash(scene, () => {
+        if (ScrollManager.tryApplyNextSection) {
+          ScrollManager.tryApplyNextSection(scene);
         }
+        scene.rebuildLevel();
+        scene.showCountdown(`DISTANCE: ${scene.distance}`, () => {
+          scene.gameActive = true;
+          scene.physics.resume();
+          this.updateHUD(scene);
+        });
       });
       return;
     }
@@ -130,30 +157,16 @@ const ScoreManager = {
       scene.level++;
       ChallengeManager.checkChallengeProgress('levels', 1);
 
- 
+      scene.gameActive = false;
+      scene.physics.pause();
 
-      const flash = scene.add.rectangle(
-        scene.gameWidth / 2,
-        scene.gameHeight / 2,
-        scene.gameWidth,
-        scene.gameHeight,
-        0x44ff88,
-        0.5
-      ).setDepth(200);
-
-      scene.tweens.add({
-        targets: flash,
-        alpha: 0,
-        duration: GameConfig.levelCompleteFlashMs,
-        onComplete: () => {
-          flash.destroy();
-          scene.rebuildLevel();
-          scene.showCountdown(`LEVEL ${scene.level}`, () => {
-            scene.gameActive = true;
-            scene.physics.resume();
-            this.updateHUD(scene);
-          });
-        }
+      this._showLevelCompleteFlash(scene, () => {
+        scene.rebuildLevel();
+        scene.showCountdown(`LEVEL ${scene.level}`, () => {
+          scene.gameActive = true;
+          scene.physics.resume();
+          this.updateHUD(scene);
+        });
       });
       return;
     }
@@ -174,31 +187,16 @@ const ScoreManager = {
       AudioManager.stopMusic();
     }
 
-    const flash = scene.add.rectangle(
-      scene.gameWidth / 2,
-      scene.gameHeight / 2,
-      scene.gameWidth,
-      scene.gameHeight,
-      0x44ff88,
-      0.5
-    ).setDepth(200);
-
-    scene.tweens.add({
-      targets: flash,
-      alpha: 0,
-      duration: GameConfig.levelCompleteFlashMs,
-      onComplete: () => {
-        flash.destroy();
-        scene.hopsCompleted = 0;
-        scene.level++;
-        ChallengeManager.checkChallengeProgress('levels', 1);
-        scene.rebuildLevel();
-        scene.showCountdown(`LEVEL ${scene.level}`, () => {
-          scene.gameActive = true;
-          scene.physics.resume();
-          this.updateHUD(scene);
-        });
-      }
+    this._showLevelCompleteFlash(scene, () => {
+      scene.hopsCompleted = 0;
+      scene.level++;
+      ChallengeManager.checkChallengeProgress('levels', 1);
+      scene.rebuildLevel();
+      scene.showCountdown(`LEVEL ${scene.level}`, () => {
+        scene.gameActive = true;
+        scene.physics.resume();
+        this.updateHUD(scene);
+      });
     });
   },
 
@@ -214,8 +212,7 @@ const ScoreManager = {
       scene.shieldActive = false;
       scene.magnetActive = false;
       scene.player.clearTint();
-      if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
-      if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
+      this._clearPowerupIndicators(scene);
       AchievementManager.trackDeath();
 
       this._playSFX('death');
@@ -226,20 +223,7 @@ const ScoreManager = {
       }
 
       scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
-      const flash = scene.add.rectangle(
-        scene.gameWidth / 2,
-        scene.gameHeight / 2,
-        scene.gameWidth,
-        scene.gameHeight,
-        0xff0000,
-        0.4
-      ).setDepth(200);
-      scene.tweens.add({
-        targets: flash,
-        alpha: 0,
-        duration: GameConfig.deathFlashMs,
-        onComplete: () => flash.destroy()
-      });
+      this._showDeathFlash(scene);
 
       scene.gameActive = false;
       scene.physics.pause();
@@ -258,8 +242,7 @@ const ScoreManager = {
     scene.magnetActive = false;
     scene.ridingEntity = null;
     scene.player.clearTint();
-    if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
-    if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
+    this._clearPowerupIndicators(scene);
     AchievementManager.trackDeath();
 
     this._playSFX('death');
@@ -270,20 +253,7 @@ const ScoreManager = {
     }
 
     scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
-    const flash = scene.add.rectangle(
-      scene.gameWidth / 2,
-      scene.gameHeight / 2,
-      scene.gameWidth,
-      scene.gameHeight,
-      0xff0000,
-      0.4
-    ).setDepth(200);
-    scene.tweens.add({
-      targets: flash,
-      alpha: 0,
-      duration: GameConfig.deathFlashMs,
-      onComplete: () => flash.destroy()
-    });
+    this._showDeathFlash(scene);
 
     if (scene.lives <= 0) {
       ScoreManager.onGameOver(scene);
@@ -318,8 +288,7 @@ const ScoreManager = {
       scene.magnetActive = false;
       scene.ridingEntity = null;
       scene.player.clearTint();
-      if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
-      if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
+      this._clearPowerupIndicators(scene);
       AchievementManager.trackDeath();
 
       this._playSFX('death');
@@ -331,20 +300,7 @@ const ScoreManager = {
 
       scene.gameActive = false;
       scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
-      const flash = scene.add.rectangle(
-        scene.gameWidth / 2,
-        scene.gameHeight / 2,
-        scene.gameWidth,
-        scene.gameHeight,
-        0xff0000,
-        0.4
-      ).setDepth(200);
-      scene.tweens.add({
-        targets: flash,
-        alpha: 0,
-        duration: GameConfig.deathFlashMs,
-        onComplete: () => flash.destroy()
-      });
+      this._showDeathFlash(scene);
 
       scene.player.setAlpha(0.3);
       scene.physics.pause();
@@ -366,8 +322,7 @@ const ScoreManager = {
     scene.magnetActive = false;
     scene.ridingEntity = null;
     scene.player.clearTint();
-    if (scene.shieldIndicator) { scene.shieldIndicator.destroy(); scene.shieldIndicator = null; }
-    if (scene.magnetIndicator) { scene.magnetIndicator.destroy(); scene.magnetIndicator = null; }
+    this._clearPowerupIndicators(scene);
     AchievementManager.trackDeath();
 
     this._playSFX('death');
@@ -378,20 +333,7 @@ const ScoreManager = {
     }
 
     scene.cameras.main.shake(GameConfig.cameraShakeDuration, GameConfig.cameraShakeStrength);
-    const flash = scene.add.rectangle(
-      scene.gameWidth / 2,
-      scene.gameHeight / 2,
-      scene.gameWidth,
-      scene.gameHeight,
-      0xff0000,
-      0.4
-    ).setDepth(200);
-    scene.tweens.add({
-      targets: flash,
-      alpha: 0,
-      duration: GameConfig.deathFlashMs,
-      onComplete: () => flash.destroy()
-    });
+    this._showDeathFlash(scene);
 
     scene.player.setAlpha(0.3);
     scene.physics.pause();

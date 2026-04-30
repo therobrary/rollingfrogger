@@ -32,53 +32,33 @@ const RiverManager = {
         const entityDef = entities[i % entities.length] || { type: 'log', width: 56 };
         const x = Phaser.Math.Between(40, scene.gameWidth - 40);
         const y = LANE_DATA.getY(laneIndex, scene.gameHeight, LANE_DATA.TILE_SIZE);
-        const speed = baseSpeed * (0.7 + Math.random() * 0.6) * dir;
-
-        // Apply difficulty speed multiplier
+        let finalSpeed;
         if (scene._difficultyDirector) {
           const speedMult = scene._difficultyDirector.getSpeedMultiplier();
-          const adjustedSpeed = baseSpeed * speedMult * (0.7 + Math.random() * 0.6) * dir;
-          const texture = entityDef.type === 'turtle' ? 'turtle' : 'log';
-          const entity = new FloatingEntity(scene, x, y, texture, entityDef.type);
-          entity.setSpeed(adjustedSpeed);
-          entity.width = entityDef.width || 56;
-          entity.setData('lane', laneIndex);
-          entity.setData('speed', adjustedSpeed);
-          entity.setDepth(4);
-          entity.body.setAllowGravity(false);
-          entity.body.setImmovable(true);
-          entity.onWrap = (deltaX) => {
-            if (scene.ridingEntity === entity) {
-              scene.player.x += deltaX;
-            }
-          };
-
-          if (entityDef.type === 'turtle') {
-            scene.turtles.add(entity);
-          } else {
-            scene.logs.add(entity);
-          }
+          finalSpeed = baseSpeed * speedMult * (0.7 + Math.random() * 0.6) * dir;
         } else {
-          const texture = entityDef.type === 'turtle' ? 'turtle' : 'log';
-          const entity = new FloatingEntity(scene, x, y, texture, entityDef.type);
-          entity.setSpeed(speed);
-          entity.width = entityDef.width || 56;
-          entity.setData('lane', laneIndex);
-          entity.setData('speed', speed);
-          entity.setDepth(4);
-          entity.body.setAllowGravity(false);
-          entity.body.setImmovable(true);
-          entity.onWrap = (deltaX) => {
-            if (scene.ridingEntity === entity) {
-              scene.player.x += deltaX;
-            }
-          };
+          finalSpeed = baseSpeed * (0.7 + Math.random() * 0.6) * dir;
+        }
 
-          if (entityDef.type === 'turtle') {
-            scene.turtles.add(entity);
-          } else {
-            scene.logs.add(entity);
+        const texture = entityDef.type === 'turtle' ? 'turtle' : 'log';
+        const entity = new FloatingEntity(scene, x, y, texture, entityDef.type);
+        entity.setSpeed(finalSpeed);
+        entity.width = entityDef.width || 56;
+        entity.setData('lane', laneIndex);
+        entity.setData('speed', finalSpeed);
+        entity.setDepth(4);
+        entity.body.setAllowGravity(false);
+        entity.body.setImmovable(true);
+        entity.onWrap = (deltaX) => {
+          if (scene.ridingEntity === entity) {
+            scene.player.x += deltaX;
           }
+        };
+
+        if (entityDef.type === 'turtle') {
+          scene.turtles.add(entity);
+        } else {
+          scene.logs.add(entity);
         }
       }
     });

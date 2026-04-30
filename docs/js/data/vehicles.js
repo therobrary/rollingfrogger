@@ -167,7 +167,6 @@ const CHALLENGE_DATA = {
   },
 };
 
-// Rolling-Frogger - Bonus Mode Data Definitions
 // Rolling-Frogger - Vehicle Data Definitions
 const VEHICLE_DATA = {
   baseSpeedDivisor: 12,
@@ -191,65 +190,4 @@ const VEHICLE_DATA = {
   ]
 };
 
-const BONUS_MODE_DATA = {
-  modes: [
-    {
-      id: 'time_trial',
-      name: 'Time Trial',
-      description: 'Beat the clock across lanes! Complete levels in 60 seconds.',
-      icon: 'timer',
-      color: '#ff4444',
-      duration: 60,
-      speedMultiplier: 1,
-      scoreMultiplier: 1,
-      noDeath: false,
-      tags: ['timed', 'classic']
-    },
-    {
-      id: 'no_miss',
-      name: 'No Miss',
-      description: 'Complete levels without any near misses.',
-      icon: 'shield',
-      color: '#44ffaa',
-      speedMultiplier: 1,
-      scoreMultiplier: 1.5,
-      noDeath: false,
-      strictNearMisses: true,
-      tags: ['challenge', 'precision']
-    },
-    {
-      id: 'speed_run',
-      name: 'Speed Run',
-      description: 'Traffic is 2x speed but rewards are 3x!',
-      icon: 'bolt',
-      color: '#ffaa00',
-      speedMultiplier: 2,
-      scoreMultiplier: 3,
-      noDeath: false,
-      tags: ['fast', 'reward']
-    },
-    {
-      id: 'zen_mode',
-      name: 'Zen Mode',
-      description: 'No death, just score accumulation. Relax and play.',
-      icon: 'leaf',
-      color: '#44aaff',
-      speedMultiplier: 1,
-      scoreMultiplier: 1,
-      noDeath: true,
-      tags: ['relax', 'endless']
-    }
-  ],
 
-  getMode(id) {
-    return this.modes.find(m => m.id === id) || null;
-  },
-
-  getModesByTag(tag) {
-    return this.modes.filter(m => m.tags.includes(tag));
-  },
-
-  getModeCount() {
-    return this.modes.length;
-  }
-};

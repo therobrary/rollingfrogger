@@ -24,14 +24,7 @@ const PickupManager = {
     const gameWidth = scene.gameWidth;
 
     // Calculate vehicle positions to avoid overlap
-    const vehicles = [];
-    [scene.cars, scene.buses, scene.trucks].forEach(vehicleGroup => {
-      vehicleGroup.getChildren().forEach(v => {
-        if (v.active && v.body) {
-          vehicles.push(v);
-        }
-      });
-    });
+    const vehicles = TrafficSpawner.getAllActiveVehicles(scene).filter(v => v.body);
 
     const isSafe = (x, y) => {
       for (const v of vehicles) {
@@ -105,9 +98,10 @@ const PickupManager = {
 
       const dx = scene.player.x - pickup.x;
       const dy = scene.player.y - pickup.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
+      const distSq = dx * dx + dy * dy;
+      const radiusSq = GameConfig.pickupCollectionRadius * GameConfig.pickupCollectionRadius;
 
-      if (dist < GameConfig.pickupCollectionRadius) {
+      if (distSq < radiusSq) {
         this.collectPickup(scene, pickup);
       }
     }
@@ -343,8 +337,9 @@ const PickupManager = {
       if (!p.active) return;
       const dx = scene.player.x - p.x;
       const dy = scene.player.y - p.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 150 && dist > 0) {
+      const distSq = dx * dx + dy * dy;
+      if (distSq < 22500 && distSq > 0) {  // 150 * 150 = 22500
+        const dist = Math.sqrt(distSq);
         const force = 60 / Math.max(dist, 1);
         p.x += dx * force;
         p.y += dy * force;
